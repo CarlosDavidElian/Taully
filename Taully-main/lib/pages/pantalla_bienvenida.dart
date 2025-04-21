@@ -1,41 +1,49 @@
-// welcome_screen.dart
 import 'package:flutter/material.dart';
 
 class PantallaBienvenida extends StatelessWidget {
   const PantallaBienvenida({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: const Color.fromARGB(255, 245, 242, 64),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart, size: 100, color: Colors.blue),
-            SizedBox(height: 20),
+            Image.asset(
+              'lib/imgtaully/Taully_remo.png',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 0),
             Text(
-              'Bienvenido a TAULLY',
+              'Bienvenido',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[800],
               ),
             ),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'Tu solución de compras',
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              style: TextStyle(fontSize: 16, color: Colors.black),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushReplacementNamed('/home');
               },
-              child: Text('Comenzar'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                backgroundColor: const Color.fromARGB(255, 145, 124, 240),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 15,
+                ),
+                foregroundColor: Colors.black,
               ),
+              child: const Text('Comenzar'),
             ),
           ],
         ),

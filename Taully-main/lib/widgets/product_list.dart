@@ -6,7 +6,7 @@ class ProductListPage extends StatelessWidget {
   final String category;
   final List<Map<String, dynamic>> products;
 
-  const ProductListPage({ 
+  const ProductListPage({
     super.key,
     required this.category,
     required this.products,
