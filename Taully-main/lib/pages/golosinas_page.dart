@@ -67,7 +67,7 @@ class GolosinasPage extends StatelessWidget {
           'name': 'Chocolate Doña Pepa',
           'price': 1.00,
           'image':
-              'https://swissbrothers.com/2185-large_default/chocolate-dona-pepa-30gr.jpg',
+              'https://www.tiendaperuonline.com/cdn/shop/products/GALLETADONAPEPA_grande.jpg?v=1667378975',
         },
       ],
     );

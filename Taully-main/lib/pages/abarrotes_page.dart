@@ -14,7 +14,7 @@ class AbarrotesPage extends StatelessWidget {
           'name': 'Aceite Primor 900 Ml',
           'price': 1.50,
           'image':
-              'http://corporacionliderperu.com/46924-large_default/primor-clasico-aceite-vegetal-bt-x-900-ml.jpg',
+              'https://plazavea.vteximg.com.br/arquivos/ids/30632030-450-450/20281566.jpg?v=638758944609130000',
         },
         {
           'name': 'Harina maíz Pan',
@@ -26,7 +26,7 @@ class AbarrotesPage extends StatelessWidget {
           'name': 'Coca-Cola 1.5L',
           'price': 3.50,
           'image':
-              'https://masterkong.pe/pueblolibre/wp-content/uploads/sites/2/2023/01/coca-cola-1500.jpg',
+              'https://plazavea.vteximg.com.br/arquivos/ids/29148582-418-418/76296.jpg',
         },
         {
           'name': 'Arroz Costeño 5kg',
@@ -44,25 +44,25 @@ class AbarrotesPage extends StatelessWidget {
           'name': 'Azúcar Rubia 1kg',
           'price': 3.20,
           'image':
-              'https://d20f60vzbd93dl.cloudfront.net/uploads/tienda_010816/tienda_010816_a6d2b2c98a1f2383be43896ce99ffc7dc3bb73f0_producto_large_90.png?not-from-cache-please',
+              'https://plazavea.vteximg.com.br/arquivos/ids/30578637-512-512/20283176.jpg',
         },
         {
           'name': 'Sal Lobos 1kg',
           'price': 1.00,
           'image':
-              'https://www.spl-latam.com/wp-content/uploads/sites/3/2020/12/Lobos-Bolsa-Cocina-azul-700x700.png',
+              'https://http2.mlstatic.com/D_NQ_NP_664897-MLC52299997528_112022-O.webp',
         },
         {
           'name': 'Leche Gloria Entera 400g',
           'price': 4.80,
           'image':
-              'https://distribuidoracunia.com/wp-content/uploads/2025/01/leche-gloria-evaporada-entera-400g-1.jpg',
+              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbZqS4RhlLBxq4jDyXE15AlXTQSOSkVxHqSw&s',
         },
         {
           'name': 'Atún Florida en agua 170g',
           'price': 3.50,
           'image':
-              'https://www.miamarket.pe/assets/uploads/7f3f85845c291b6fd6e4e10c08010bf5.jpg',
+              'https://plazavea.vteximg.com.br/arquivos/ids/1087859-450-450/20191578.jpg?v=637503861045000000',
         },
         {
           'name': 'Salsa de Tomate Natura 200g',
@@ -92,7 +92,7 @@ class AbarrotesPage extends StatelessWidget {
           'name': 'Papel Higiénico Suave 4 rollos',
           'price': 3.80,
           'image':
-              'https://dojiw2m9tvv09.cloudfront.net/53648/product/disenosintitulo-45770.png',
+              'https://metroio.vtexassets.com/arquivos/ids/522482-800-auto?v=638495769715130000&width=800&height=auto&aspect=true',
         },
         {
           'name': 'Detergente Bolívar 1kg',
