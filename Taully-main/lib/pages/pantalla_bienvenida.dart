@@ -45,6 +45,16 @@ class PantallaBienvenida extends StatelessWidget {
               ),
               child: const Text('Comenzar'),
             ),
+             const SizedBox(height: 20),
+            // Botón de login (icono)
+            IconButton(
+              icon: const Icon(Icons.account_circle, size: 50),
+              color: Colors.blue,
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+            ),
+            const Text('ADMINISTRADOR', style: TextStyle(color: Colors.blue)),
           ],
         ),
       ),

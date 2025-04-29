@@ -4,6 +4,8 @@ import 'package:taully/pages/limpieza_page.dart';
 import 'pages/abarrotes_page.dart';
 import 'pages/Golosinas_page.dart'; 
 import 'pages/ricocan_page.dart'; 
+import 'pages/pantalla_login.dart';
+import 'pages/admin_productos.dart';
 import 'package:taully/pages/pantalla_Bienvenida.dart';
 import 'package:taully/pages/pantalla_Finaliza.dart';
 
@@ -33,6 +35,8 @@ class MyApp extends StatelessWidget {
         '/Bienvenida': (context) => PantallaBienvenida(),  // Sin /
         '/home': (context) => const HomePage(), 
         '/Finaliza': (context) => PantallaFinaliza(),
+        '/login': (context) => PantallaLogin(),
+        '/admin-productos': (context) => const AdminProductos(),
       },
       //home: const HomePage(),
       debugShowCheckedModeBanner: false,
