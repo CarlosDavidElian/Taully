@@ -59,7 +59,7 @@ class HomePage extends StatelessWidget {
               Tab(text: 'Abarrotes'),
               Tab(text: 'Golosinas'),
               Tab(text: 'Prod.Limpieza'),
-              Tab(text: 'Ricocan'), // 
+              Tab(text: 'Comd.Animales'), // 
             ],
           ),
           backgroundColor: const Color.fromARGB(255, 241, 226, 10),
