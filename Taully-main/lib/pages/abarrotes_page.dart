@@ -12,7 +12,7 @@ class AbarrotesPage extends StatelessWidget {
       products: const [
         {
           'name': 'Aceite Primor 900 Ml',
-          'price': 1.50,
+          'price': 1.80,
           'image':
               'https://plazavea.vteximg.com.br/arquivos/ids/30632030-450-450/20281566.jpg?v=638758944609130000',
         },
