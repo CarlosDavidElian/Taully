@@ -47,7 +47,7 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 245, 242, 64),
+      backgroundColor: const Color.fromARGB(255, 235, 238, 39),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
