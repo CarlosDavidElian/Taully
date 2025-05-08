@@ -11,7 +11,7 @@ class PantallaLogin extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio de Sesión'),
-        backgroundColor: Colors.blue, // Color personalizado
+        backgroundColor: const Color.fromARGB(208, 243, 236, 33), // Color personalizado
         elevation: 0, // Elimina la sombra del AppBar
       ),
       body: SingleChildScrollView(

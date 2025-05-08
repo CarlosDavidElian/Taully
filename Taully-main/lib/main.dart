@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(), 
         '/Finaliza': (context) => PantallaFinaliza(),
         '/login': (context) => PantallaLogin(),
-        '/admin-productos': (context) => const AdminProductos(),
+        '/admin-productos': (context) => const AdminProductosPage(),
       },
       //home: const HomePage(),
       debugShowCheckedModeBanner: false,

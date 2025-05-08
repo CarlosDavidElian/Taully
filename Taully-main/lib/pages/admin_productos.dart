@@ -1,125 +1,110 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
-class AdminProductos extends StatefulWidget {
-  const AdminProductos({super.key});
+class AdminProductosPage extends StatefulWidget {
+  const AdminProductosPage({Key? key}) : super(key: key);
 
   @override
-  State<AdminProductos> createState() => _AdminProductosState();
+  _AdminProductosPageState createState() => _AdminProductosPageState();
 }
 
-class _AdminProductosState extends State<AdminProductos> {
-  final List<Product> _productos = [
-    Product(
-      id: '1',
-      name: 'Producto 1',
-      price: 10.0,
-      imageType: ImageType.network,
-      imagePath: 'https://via.placeholder.com/150',
-      description: 'Descripción del producto 1',
-    ),
-    Product(
-      id: '2',
-      name: 'Producto 2',
-      price: 20.0,
-      imageType: ImageType.network,
-      imagePath: 'https://via.placeholder.com/150',
-      description: 'Descripción del producto 2',
-    ),
-    Product(
-      id: '3',
-      name: 'Producto 3',
-      price: 32.0,
-      imageType: ImageType.network,
-      imagePath: 'https://via.placeholder.com/150',
-      description: 'Descripción del producto 3',
-    ),
-  ];
-
+class _AdminProductosPageState extends State<AdminProductosPage> {
+  final List<Product> _productos = [];
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
-  final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _busquedaController = TextEditingController();
-  File? _imageFile;
-  final ImagePicker _picker = ImagePicker();
+
+  // Lista de categorías disponibles
+  final List<String> _categorias = [
+    'Abarrotes',
+    'Golosinas',
+    'Prod.Limpieza',
+    'Comd.Animales',
+  ];
+  
+  // Categoría seleccionada para el producto nuevo/editado
+  String _categoriaSeleccionada = 'Abarrotes';
+  
+  // Categoría para filtrar la lista de productos
+  String? _filtroCategoria;
+
   bool _isAddingProduct = false;
   String? _idEditando;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
-  @override
-  void dispose() {
-    _nombreController.dispose();
-    _precioController.dispose();
-    _descripcionController.dispose();
-    _busquedaController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al seleccionar imagen: $e')),
-      );
+  void _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
 
   void _mostrarFormularioAgregar() {
+    _nombreController.clear();
+    _precioController.clear();
+    _categoriaSeleccionada = _categorias[0]; // Establecer categoría predeterminada
+    _imageFile = null;
+    _idEditando = null;
     setState(() {
       _isAddingProduct = true;
-      _nombreController.clear();
-      _precioController.clear();
-      _descripcionController.clear();
-      _imageFile = null;
-      _idEditando = null;
     });
   }
 
   void _ocultarFormulario() {
     setState(() {
       _isAddingProduct = false;
+      _idEditando = null;
     });
   }
 
   void _guardarProducto() {
-    // Validación básica
-    if (_nombreController.text.isEmpty || _precioController.text.isEmpty) {
+    final String nombre = _nombreController.text.trim();
+    
+    if (nombre.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nombre y precio son obligatorios')),
+        const SnackBar(content: Text('El nombre del producto es obligatorio')),
       );
       return;
     }
 
-    final double? price = double.tryParse(_precioController.text.replaceAll(',', '.'));
-    if (price == null) {
+    double price = 0.0;
+    if (_precioController.text.isNotEmpty) {
+      try {
+        price = double.parse(_precioController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingrese un precio válido')),
+        );
+        return;
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El precio debe ser un número válido')),
+        const SnackBar(content: Text('El precio es obligatorio')),
       );
       return;
     }
 
     if (_idEditando != null) {
       // Editar producto existente
-      final index = _productos.indexWhere((p) => p.id == _idEditando);
+      final index = _productos.indexWhere((product) => product.id == _idEditando);
       if (index != -1) {
         final Product updatedProduct = Product(
           id: _idEditando!,
           name: _nombreController.text,
           price: price,
-          description: _descripcionController.text,
-          imageType: _imageFile != null ? ImageType.file : _productos[index].imageType,
+          category: _categoriaSeleccionada,
+          imageType: _imageFile != null ? ImageType.file : (_productos[index].imageType == ImageType.network ? ImageType.network : ImageType.file),
           imagePath: _imageFile != null ? _imageFile!.path : _productos[index].imagePath,
         );
 
         setState(() {
           _productos[index] = updatedProduct;
           _isAddingProduct = false;
+          _idEditando = null;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,7 +117,7 @@ class _AdminProductosState extends State<AdminProductos> {
         id: DateTime.now().toString(),
         name: _nombreController.text,
         price: price,
-        description: _descripcionController.text,
+        category: _categoriaSeleccionada,
         // Si no hay imagen seleccionada, usamos una imagen de placeholder
         imageType: _imageFile != null ? ImageType.file : ImageType.network,
         imagePath: _imageFile != null ? _imageFile!.path : 'https://via.placeholder.com/150',
@@ -164,25 +149,34 @@ class _AdminProductosState extends State<AdminProductos> {
       _idEditando = product.id;
       _nombreController.text = product.name;
       _precioController.text = product.price.toString();
-      _descripcionController.text = product.description ?? '';
+      _categoriaSeleccionada = product.category;
       _imageFile = product.imageType == ImageType.file ? File(product.imagePath) : null;
     });
   }
 
   void _buscarProductos() {
     final query = _busquedaController.text.toLowerCase();
-    if (query.isEmpty) {
-      // Mostrar un SnackBar indicando que se debe ingresar un término de búsqueda
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingrese un término para buscar')),
-      );
-      return;
-    }
     
+    // Si hay una categoría seleccionada para filtrar, la aplicamos junto con la búsqueda
     setState(() {
-      _productos.removeWhere((product) => 
-          !product.name.toLowerCase().contains(query) &&
-          !(product.description?.toLowerCase().contains(query) ?? false));
+      if (_filtroCategoria != null) {
+        _productos.removeWhere((product) => 
+            !product.name.toLowerCase().contains(query) || 
+            product.category != _filtroCategoria);
+      } else {
+        _productos.removeWhere((product) => 
+            !product.name.toLowerCase().contains(query));
+      }
+    });
+  }
+
+  // Filtrar productos por categoría
+  void _filtrarPorCategoria(String? categoria) {
+    setState(() {
+      _filtroCategoria = categoria;
+      if (categoria != null) {
+        _productos.removeWhere((product) => product.category != categoria);
+      }
     });
   }
 
@@ -192,6 +186,25 @@ class _AdminProductosState extends State<AdminProductos> {
       appBar: AppBar(
         title: const Text('Administrar Productos'),
         actions: [
+          // Botón para filtrar por categoría
+          PopupMenuButton<String?>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: _filtrarPorCategoria,
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String?>(
+                  value: null,
+                  child: Text('Todos'),
+                ),
+                ..._categorias.map((String categoria) {
+                  return PopupMenuItem<String>(
+                    value: categoria,
+                    child: Text(categoria),
+                  );
+                }).toList(),
+              ];
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -203,7 +216,7 @@ class _AdminProductosState extends State<AdminProductos> {
                   content: TextField(
                     controller: _busquedaController,
                     decoration: const InputDecoration(
-                      hintText: 'Nombre o descripción...',
+                      hintText: 'Nombre...',
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
@@ -280,19 +293,16 @@ class _AdminProductosState extends State<AdminProductos> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (product.description != null && product.description!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            product.description!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Categoría: ${product.category}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -456,19 +466,40 @@ class _AdminProductosState extends State<AdminProductos> {
           ),
           const SizedBox(height: 16),
           
-          // Campo descripción
-          TextField(
-            controller: _descripcionController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: 'Descripción (opcional)',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: const Icon(Icons.description),
+          // Selector de categoría (reemplaza el campo de descripción)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.category, color: Colors.grey),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _categoriaSeleccionada,
+                      isExpanded: true,
+                      hint: const Text('Seleccionar categoría'),
+                      items: _categorias.map((String categoria) {
+                        return DropdownMenuItem<String>(
+                          value: categoria,
+                          child: Text(categoria),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _categoriaSeleccionada = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 32),
@@ -518,7 +549,7 @@ class Product {
   final String id;
   final String name;
   final double price;
-  final String? description;
+  final String category; // Reemplaza description por category
   final ImageType imageType;
   final String imagePath;
 
@@ -526,8 +557,8 @@ class Product {
     required this.id,
     required this.name,
     required this.price,
+    required this.category,
     required this.imageType,
     required this.imagePath,
-    this.description,
   });
 }
