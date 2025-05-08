@@ -24,4 +24,11 @@ class Cart with ChangeNotifier {
     }
     return total;
   }
+  
+  //el método clear para limpiar el carrito
+  void clear() {
+    _items.clear();
+    notifyListeners(); // Notifica a todos los listeners para actualizar la UI
+  }
 }
+
