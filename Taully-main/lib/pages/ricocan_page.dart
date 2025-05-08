@@ -10,7 +10,7 @@ class RicocanPage extends StatelessWidget {
       category: 'Ricocan',
       products: const [
         {
-          'name': 'Ricocan Adulto Carne y Cereales 15kg',
+          'name': 'Ricocan Adulto Carne y Cereales 16kg',
           'price': 94.00,
           'image':
               'https://wongfood.vtexassets.com/arquivos/ids/371220/387014-01-1421.jpg?v=637312320471600000',
