@@ -344,7 +344,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.orange.withOpacity(0.2),
+                    color: Colors.orange.withAlpha(25),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   )
@@ -357,7 +357,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected 
-                    ? iconColor.withOpacity(0.1) 
+                    ? iconColor.withAlpha(25)
                     : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
@@ -511,7 +511,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text('A nombre de: Minimarket App S.A.C.'),
+                      const Text('A nombre de: Taully Minimarket.'),
                     ],
                   ),
                 ),
@@ -750,7 +750,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         _buildCardTextField(
                           controller: _cardNumberController,
                           label: 'Número de tarjeta',
-                          hint: '1234 5678 9012 3456',
+                          hint: 'xxxx xxxx xxxx xxxx',
                           keyboardType: TextInputType.number,
                           icon: Icons.credit_card,
                           onChanged: (value) {
