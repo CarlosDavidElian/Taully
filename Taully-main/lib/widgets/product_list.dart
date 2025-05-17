@@ -30,7 +30,7 @@ class ProductListPage extends StatelessWidget {
                   _showCartDialog(context, cart);
                 },
               ),
-              if (cart.itemCount > 0)
+              if (cart.totalQuantity > 0) // Cambiamos itemCount por totalQuantity
                 Positioned(
                   right: 6,
                   top: 6,
@@ -41,7 +41,7 @@ class ProductListPage extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      '${cart.itemCount}',
+                      '${cart.totalQuantity}', // Mostramos el total de productos
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
@@ -136,19 +136,60 @@ class ProductListPage extends StatelessWidget {
                   )
                 else
                   ...cart.items.map((item) {
+                    // Obtenemos la cantidad del producto
+                    final int quantity = item['quantity'] as int;
+                    
                     return ListTile(
-                      title: Text(item['name']),
-                      subtitle: Text('S/ ${item['price'].toStringAsFixed(2)}'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.remove_circle_outline),
-                        onPressed: () {
-                          cart.removeFromCart(item);
-                          // Actualizamos el diálogo
-                          Navigator.of(context).pop();
-                          if (cart.items.isNotEmpty) {
-                            _showCartDialog(context, cart);
-                          }
-                        },
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(item['name']),
+                          ),
+                          Text(
+                            'x$quantity', // Mostramos la cantidad
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('S/ ${item['price'].toStringAsFixed(2)}'),
+                          Text(
+                            'Total: S/ ${(item['price'] * quantity).toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Botón para reducir cantidad
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline, size: 20),
+                            onPressed: () {
+                              cart.removeFromCart(item);
+                              // Si ya no hay items, cerramos el diálogo
+                              if (cart.items.isEmpty) {
+                                Navigator.of(context).pop();
+                              }
+                            },
+                          ),
+                          // Botón para eliminar completamente el producto
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () {
+                              cart.removeCompleteItem(item['name']);
+                              // Si ya no hay items, cerramos el diálogo
+                              if (cart.items.isEmpty) {
+                                Navigator.of(context).pop();
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     );
                   }),

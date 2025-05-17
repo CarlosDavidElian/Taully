@@ -94,18 +94,7 @@ class _PantallaLoginState extends State<PantallaLogin> with SingleTickerProvider
         title: const Text('Inicio de Sesión'),
         backgroundColor: const Color.fromARGB(208, 243, 236, 33),
         elevation: 0,
-        actions: [
-          // Botón para cambiar entre modo claro/oscuro
-          IconButton(
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            onPressed: () {
-              // Aquí implementarías la lógica para cambiar el tema
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Cambio de tema ${isDarkMode ? 'claro' : 'oscuro'}')),
-              );
-            },
-          ),
-        ],
+        // Se eliminó el botón de cambio de tema (icono de noche)
       ),
       backgroundColor: scaffoldBackgroundColor,
       body: SingleChildScrollView(
@@ -366,7 +355,7 @@ class _PantallaLoginState extends State<PantallaLogin> with SingleTickerProvider
                 
                 const SizedBox(height: 20),
                 
-                // Opciones de inicio de sesión con redes sociales
+                // Opciones de inicio de sesión con redes sociales - solo Facebook
                 Column(
                   children: [
                     const Text(
@@ -374,39 +363,15 @@ class _PantallaLoginState extends State<PantallaLogin> with SingleTickerProvider
                       style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _socialLoginButton(
-                          icon: Icons.facebook,
-                          color: const Color(0xFF1877F2),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Iniciando sesión con Facebook')),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        _socialLoginButton(
-                          icon: Icons.g_mobiledata_rounded,
-                          color: const Color(0xFFDB4437),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Iniciando sesión con Google')),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        _socialLoginButton(
-                          icon: Icons.apple,
-                          color: Colors.black,
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Iniciando sesión con Apple')),
-                            );
-                          },
-                        ),
-                      ],
+                    // Solo se mantiene el botón de Facebook
+                    _socialLoginButton(
+                      icon: Icons.facebook,
+                      color: const Color(0xFF1877F2),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Iniciando sesión con Facebook')),
+                        );
+                      },
                     ),
                   ],
                 ),
