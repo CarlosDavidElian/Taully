@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taully/pages/limpieza_page.dart';
 import 'pages/abarrotes_page.dart';
-import 'pages/Golosinas_page.dart'; 
-import 'pages/ricocan_page.dart'; 
+import 'pages/Golosinas_page.dart';
+import 'pages/ricocan_page.dart';
 import 'pages/pantalla_login.dart';
 import 'pages/admin_productos.dart';
 import 'package:taully/pages/pantalla_Bienvenida.dart';
 import 'package:taully/pages/pantalla_Finaliza.dart';
-
 import 'cart.dart';
 
 void main() {
@@ -30,15 +29,14 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      initialRoute: '/Bienvenida',  // Con /
-        routes: {
-        '/Bienvenida': (context) => PantallaBienvenida(),  // Sin /
-        '/home': (context) => const HomePage(), 
+      initialRoute: '/Bienvenida',
+      routes: {
+        '/Bienvenida': (context) => const PantallaBienvenida(),
+        '/home': (context) => const HomePage(),
         '/Finaliza': (context) => PantallaFinaliza(),
         '/login': (context) => PantallaLogin(),
         '/admin-productos': (context) => const AdminProductosPage(),
       },
-      //home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -49,31 +47,45 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4 , 
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Minimarket Taully'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Abarrotes'),
-              Tab(text: 'Golosinas'),
-              Tab(text: 'Prod.Limpieza'),
-              Tab(text: 'Comd.Animales'), // 
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pushReplacementNamed('/Bienvenida');
+        return false;
+      },
+      child: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Minimarket Taully'),
+            backgroundColor: const Color.fromARGB(255, 241, 226, 10),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.admin_panel_settings),
+                tooltip: 'Administrador',
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+              ),
+            ],
+            bottom: const TabBar(
+              tabs: [
+                Tab(text: 'Abarrotes'),
+                Tab(text: 'Golosinas'),
+                Tab(text: 'Prod.Limpieza'),
+                Tab(text: 'Comd.Animales'),
+              ],
+            ),
+          ),
+          body: const TabBarView(
+            children: [
+              AbarrotesPage(),
+              GolosinasPage(),
+              LimpiezaPage(),
+              RicocanPage(),
             ],
           ),
-          backgroundColor: const Color.fromARGB(255, 241, 226, 10),
-        ),
-        body: const TabBarView(
-          children: [
-            AbarrotesPage(),
-            GolosinasPage(),
-            LimpiezaPage(),
-             RicocanPage(), // 
-          ],
         ),
       ),
     );
   }
 }
-
