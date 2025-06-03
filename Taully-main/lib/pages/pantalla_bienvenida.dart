@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 class PantallaBienvenida extends StatefulWidget {
   const PantallaBienvenida({super.key});
@@ -11,14 +12,28 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _floatImage;
+  late VideoPlayerController _videoController;
+
   double _textOpacity = 0.0;
-  Offset _textOffset = const Offset(0, -0.2); // desde arriba
+  Offset _textOffset = const Offset(0, -0.2);
 
   @override
   void initState() {
     super.initState();
 
-    // Animación de imagen flotante
+    // Controlador del video
+    _videoController = VideoPlayerController.asset(
+        'assets/videos/Taully_remo.mp4',
+      )
+      ..initialize().then((_) {
+        setState(() {});
+        _videoController.play();
+      });
+
+    // Evitar que se repita
+    _videoController.setLooping(false);
+
+    // Animación de flotación
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -29,7 +44,7 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
       end: const Offset(0, 0.02),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Activar animación del texto después de un pequeño delay
+    // Mostrar texto después de un pequeño delay
     Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         _textOpacity = 1.0;
@@ -41,25 +56,31 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
   @override
   void dispose() {
     _controller.dispose();
+    _videoController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 235, 238, 39),
+      backgroundColor: const Color.fromARGB(255, 247, 208, 36),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Imagen flotante
+            // Video flotante en forma ovalada
             SlideTransition(
               position: _floatImage,
-              child: Image.asset(
-                'lib/imgtaully/Taully_remo.png',
-                width: 200,
-                height: 200,
-              ),
+              child:
+                  _videoController.value.isInitialized
+                      ? ClipOval(
+                        child: SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: VideoPlayer(_videoController),
+                        ),
+                      )
+                      : const CircularProgressIndicator(),
             ),
 
             const SizedBox(height: 10),
@@ -89,18 +110,22 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
             const SizedBox(height: 30),
+
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushReplacementNamed('/home');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 145, 124, 240),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 15,
+                ),
                 foregroundColor: Colors.black,
               ),
               child: const Text('Comenzar'),
             ),
+
             const SizedBox(height: 20),
             IconButton(
               icon: const Icon(Icons.account_circle, size: 50),

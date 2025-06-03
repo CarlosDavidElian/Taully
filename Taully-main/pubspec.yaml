@@ -13,6 +13,7 @@ dependencies:
   provider: ^6.0.0
   cupertino_icons: ^1.0.8
   image_picker: ^0.8.6 
+  video_player: ^2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -23,5 +24,6 @@ flutter:
   uses-material-design: true
   assets:
     - lib/imgtaully/Taully_remo.png
+    - assets/videos/Taully_remo.mp4
 
 
