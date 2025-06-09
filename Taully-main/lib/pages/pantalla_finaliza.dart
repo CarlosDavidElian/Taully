@@ -35,11 +35,11 @@ class PantallaFinaliza extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              child: Text('Volver al inicio'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
+              child: Text('Volver al inicio'),
             ),
           ],
         ),

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../cart.dart';
 
 class CheckoutPage extends StatefulWidget {
-  const CheckoutPage({Key? key}) : super(key: key);
+  const CheckoutPage({super.key});
 
   @override
   _CheckoutPageState createState() => _CheckoutPageState();
@@ -575,10 +575,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   void _showCardPaymentForm(BuildContext context) {
-    final TextEditingController _cardNumberController = TextEditingController();
-    final TextEditingController _nameController = TextEditingController();
-    final TextEditingController _expiryController = TextEditingController();
-    final TextEditingController _cvvController = TextEditingController();
+    final TextEditingController cardNumberController = TextEditingController();
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController expiryController = TextEditingController();
+    final TextEditingController cvvController = TextEditingController();
     
     showModalBottomSheet(
       context: context,
@@ -588,7 +588,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          String _formatCardNumber(String input) {
+          String formatCardNumber(String input) {
             // Eliminar espacios y caracteres no numéricos
             final cleanInput = input.replaceAll(RegExp(r'\D'), '');
             
@@ -681,9 +681,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ),
                           const SizedBox(height: 30),
                           Text(
-                            _cardNumberController.text.isEmpty
+                            cardNumberController.text.isEmpty
                                 ? 'XXXX XXXX XXXX XXXX'
-                                : _formatCardNumber(_cardNumberController.text),
+                                : formatCardNumber(cardNumberController.text),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -706,9 +706,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     ),
                                   ),
                                   Text(
-                                    _nameController.text.isEmpty
+                                    nameController.text.isEmpty
                                         ? 'NOMBRE APELLIDO'
-                                        : _nameController.text.toUpperCase(),
+                                        : nameController.text.toUpperCase(),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -727,9 +727,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     ),
                                   ),
                                   Text(
-                                    _expiryController.text.isEmpty
+                                    expiryController.text.isEmpty
                                         ? 'MM/YY'
-                                        : _expiryController.text,
+                                        : expiryController.text,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -748,7 +748,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildCardTextField(
-                          controller: _cardNumberController,
+                          controller: cardNumberController,
                           label: 'Número de tarjeta',
                           hint: 'xxxx xxxx xxxx xxxx',
                           keyboardType: TextInputType.number,
@@ -759,7 +759,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                         const SizedBox(height: 16),
                         _buildCardTextField(
-                          controller: _nameController,
+                          controller: nameController,
                           label: 'Nombre en la tarjeta',
                           hint: 'Como aparece en la tarjeta',
                           icon: Icons.person,
@@ -772,7 +772,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           children: [
                             Expanded(
                               child: _buildCardTextField(
-                                controller: _expiryController,
+                                controller: expiryController,
                                 label: 'Fecha de vencimiento',
                                 hint: 'MM/YY',
                                 keyboardType: TextInputType.datetime,
@@ -785,7 +785,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildCardTextField(
-                                controller: _cvvController,
+                                controller: cvvController,
                                 label: 'CVV',
                                 hint: '123',
                                 keyboardType: TextInputType.number,

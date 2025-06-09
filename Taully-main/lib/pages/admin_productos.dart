@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class AdminProductosPage extends StatefulWidget {
-  const AdminProductosPage({Key? key}) : super(key: key);
+  const AdminProductosPage({super.key});
 
   @override
   _AdminProductosPageState createState() => _AdminProductosPageState();
@@ -201,7 +201,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
                     value: categoria,
                     child: Text(categoria),
                   );
-                }).toList(),
+                }),
               ];
             },
           ),
