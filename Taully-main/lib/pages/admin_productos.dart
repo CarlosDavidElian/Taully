@@ -1,537 +1,240 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
+
+import '../services/product_service.dart';
 
 class AdminProductosPage extends StatefulWidget {
-  const AdminProductosPage({super.key});
+  const AdminProductosPage({Key? key}) : super(key: key);
 
   @override
   _AdminProductosPageState createState() => _AdminProductosPageState();
 }
 
 class _AdminProductosPageState extends State<AdminProductosPage> {
-  final List<Product> _productos = [];
+  final ProductService _productService = ProductService();
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
-  final TextEditingController _busquedaController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
 
-  // Lista de categorías disponibles
   final List<String> _categorias = [
     'Abarrotes',
     'Golosinas',
     'Prod.Limpieza',
     'Comd.Animales',
   ];
-  
-  // Categoría seleccionada para el producto nuevo/editado
   String _categoriaSeleccionada = 'Abarrotes';
-  
-  // Categoría para filtrar la lista de productos
-  String? _filtroCategoria;
-
-  bool _isAddingProduct = false;
-  String? _idEditando;
   File? _imageFile;
+  String? _imageUrlManual;
   final ImagePicker _picker = ImagePicker();
+  bool _isAdding = false;
+  String? _editId;
 
-  void _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+  void _mostrarFormulario({Map<String, dynamic>? producto}) {
+    if (producto != null) {
+      _editId = producto['id'];
+      _nombreController.text = producto['name'];
+      _precioController.text = producto['price'].toString();
+      _categoriaSeleccionada = producto['category'];
+      _imageUrlManual = producto['image'];
+      _urlController.text = producto['image'] ?? '';
+      _imageFile = null;
+    } else {
+      _editId = null;
+      _nombreController.clear();
+      _precioController.clear();
+      _urlController.clear();
+      _imageUrlManual = null;
+      _categoriaSeleccionada = _categorias[0];
+      _imageFile = null;
     }
-  }
-
-  void _mostrarFormularioAgregar() {
-    _nombreController.clear();
-    _precioController.clear();
-    _categoriaSeleccionada = _categorias[0]; // Establecer categoría predeterminada
-    _imageFile = null;
-    _idEditando = null;
-    setState(() {
-      _isAddingProduct = true;
-    });
+    setState(() => _isAdding = true);
   }
 
   void _ocultarFormulario() {
     setState(() {
-      _isAddingProduct = false;
-      _idEditando = null;
+      _isAdding = false;
+      _editId = null;
+      _imageFile = null;
+      _imageUrlManual = null;
+      _urlController.clear();
     });
   }
 
-  void _guardarProducto() {
-    final String nombre = _nombreController.text.trim();
-    
-    if (nombre.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El nombre del producto es obligatorio')),
-      );
-      return;
-    }
-
-    double price = 0.0;
-    if (_precioController.text.isNotEmpty) {
-      try {
-        price = double.parse(_precioController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ingrese un precio válido')),
-        );
-        return;
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El precio es obligatorio')),
-      );
-      return;
-    }
-
-    if (_idEditando != null) {
-      // Editar producto existente
-      final index = _productos.indexWhere((product) => product.id == _idEditando);
-      if (index != -1) {
-        final Product updatedProduct = Product(
-          id: _idEditando!,
-          name: _nombreController.text,
-          price: price,
-          category: _categoriaSeleccionada,
-          imageType: _imageFile != null ? ImageType.file : (_productos[index].imageType == ImageType.network ? ImageType.network : ImageType.file),
-          imagePath: _imageFile != null ? _imageFile!.path : _productos[index].imagePath,
-        );
-
-        setState(() {
-          _productos[index] = updatedProduct;
-          _isAddingProduct = false;
-          _idEditando = null;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Producto actualizado con éxito')),
-        );
-      }
-    } else {
-      // Crear nuevo producto
-      final Product newProduct = Product(
-        id: DateTime.now().toString(),
-        name: _nombreController.text,
-        price: price,
-        category: _categoriaSeleccionada,
-        // Si no hay imagen seleccionada, usamos una imagen de placeholder
-        imageType: _imageFile != null ? ImageType.file : ImageType.network,
-        imagePath: _imageFile != null ? _imageFile!.path : 'https://via.placeholder.com/150',
-      );
-
+  Future<void> _seleccionarImagen() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
       setState(() {
-        _productos.add(newProduct);
-        _isAddingProduct = false;
+        _imageFile = File(pickedFile.path);
+        _imageUrlManual = null;
+        _urlController.clear();
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Producto agregado con éxito')),
-      );
     }
   }
 
-  void _eliminarProducto(String id) {
-    setState(() {
-      _productos.removeWhere((product) => product.id == id);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Producto eliminado')),
-    );
+  Future<String?> _subirImagen(File imagen) async {
+    try {
+      final fileName = path.basename(imagen.path);
+      final ref = FirebaseStorage.instance.ref().child('productos/$fileName');
+      await ref.putFile(imagen);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Error al subir imagen: $e');
+      return null;
+    }
   }
 
-  void _editarProducto(Product product) {
-    setState(() {
-      _isAddingProduct = true;
-      _idEditando = product.id;
-      _nombreController.text = product.name;
-      _precioController.text = product.price.toString();
-      _categoriaSeleccionada = product.category;
-      _imageFile = product.imageType == ImageType.file ? File(product.imagePath) : null;
-    });
-  }
+  Future<void> _guardarProducto() async {
+    final String nombre = _nombreController.text.trim();
+    final String precioTexto = _precioController.text.trim();
+    final String urlManual = _urlController.text.trim();
 
-  void _buscarProductos() {
-    final query = _busquedaController.text.toLowerCase();
-    
-    // Si hay una categoría seleccionada para filtrar, la aplicamos junto con la búsqueda
-    setState(() {
-      if (_filtroCategoria != null) {
-        _productos.removeWhere((product) => 
-            !product.name.toLowerCase().contains(query) || 
-            product.category != _filtroCategoria);
+    if (nombre.isEmpty || precioTexto.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nombre y precio son obligatorios')),
+      );
+      return;
+    }
+
+    double? precio = double.tryParse(precioTexto);
+    if (precio == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Precio inválido')));
+      return;
+    }
+
+    String imageUrl = 'https://via.placeholder.com/150';
+    if (_imageFile != null) {
+      final url = await _subirImagen(_imageFile!);
+      if (url != null) imageUrl = url;
+    } else if (urlManual.isNotEmpty) {
+      imageUrl = urlManual;
+    }
+
+    final productoData = {
+      'name': nombre,
+      'price': precio,
+      'category': _categoriaSeleccionada,
+      'image': imageUrl,
+    };
+
+    try {
+      if (_editId != null) {
+        await _productService.updateProduct(_editId!, productoData);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Producto actualizado')));
       } else {
-        _productos.removeWhere((product) => 
-            !product.name.toLowerCase().contains(query));
+        await _productService.addProduct(productoData);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Producto agregado')));
       }
-    });
+      _ocultarFormulario();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
-  // Filtrar productos por categoría
-  void _filtrarPorCategoria(String? categoria) {
-    setState(() {
-      _filtroCategoria = categoria;
-      if (categoria != null) {
-        _productos.removeWhere((product) => product.category != categoria);
-      }
-    });
+  Future<void> _eliminarProducto(String id) async {
+    try {
+      await _productService.deleteProduct(id);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Producto eliminado')));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al eliminar: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Administrar Productos'),
-        actions: [
-          // Botón para filtrar por categoría
-          PopupMenuButton<String?>(
-            icon: const Icon(Icons.filter_list),
-            onSelected: _filtrarPorCategoria,
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String?>(
-                  value: null,
-                  child: Text('Todos'),
-                ),
-                ..._categorias.map((String categoria) {
-                  return PopupMenuItem<String>(
-                    value: categoria,
-                    child: Text(categoria),
-                  );
-                }),
-              ];
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Mostrar diálogo de búsqueda
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Buscar productos'),
-                  content: TextField(
-                    controller: _busquedaController,
-                    decoration: const InputDecoration(
-                      hintText: 'Nombre...',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancelar'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        _buscarProductos();
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Buscar'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: _isAddingProduct ? _buildFormularioProducto() : _buildListaProductos(),
-      floatingActionButton: !_isAddingProduct
-          ? FloatingActionButton(
-              onPressed: _mostrarFormularioAgregar,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      appBar: AppBar(title: const Text('Administrar Productos')),
+      body: _isAdding ? _buildFormulario() : _buildLista(),
+      floatingActionButton:
+          !_isAdding
+              ? FloatingActionButton(
+                onPressed: () => _mostrarFormulario(),
+                child: const Icon(Icons.add),
+              )
+              : null,
     );
   }
 
-  Widget _buildListaProductos() {
-    return ListView.builder(
+  Widget _buildFormulario() {
+    return Padding(
       padding: const EdgeInsets.all(16),
-      itemCount: _productos.length,
-      itemBuilder: (context, index) {
-        final product = _productos[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Imagen del producto
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: _buildProductImage(product),
-                ),
-                const SizedBox(width: 16),
-                // Información del producto
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Categoría: ${product.category}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Botones de acción
-                Column(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _editarProducto(product),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _eliminarProducto(product.id),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProductImage(Product product) {
-    try {
-      switch (product.imageType) {
-        case ImageType.network:
-          return Image.network(
-            product.imagePath,
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildImagePlaceholder();
-            },
-          );
-        case ImageType.file:
-          return Image.file(
-            File(product.imagePath),
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildImagePlaceholder();
-            },
-          );
-        case ImageType.asset:
-          return Image.asset(
-            product.imagePath,
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildImagePlaceholder();
-            },
-          );
-      }
-    } catch (e) {
-      return _buildImagePlaceholder();
-    }
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Container(
-      width: 80,
-      height: 80,
-      color: Colors.grey[300],
-      child: Icon(Icons.image, color: Colors.grey[600]),
-    );
-  }
-
-  Widget _buildFormularioProducto() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
         children: [
-          Text(
-            _idEditando == null ? 'Agregar Producto' : 'Editar Producto',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Selector de imagen
-          Center(
-            child: GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: _imageFile != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          _imageFile!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildImagePlaceholder();
-                          },
-                        ),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(
-                            Icons.camera_alt,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Agregar imagen',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Campo nombre
           TextField(
             controller: _nombreController,
-            decoration: InputDecoration(
-              labelText: 'Nombre del producto',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: const Icon(Icons.shopping_bag),
-            ),
+            decoration: const InputDecoration(labelText: 'Nombre del producto'),
           ),
-          const SizedBox(height: 16),
-          
-          // Campo precio
+          const SizedBox(height: 12),
           TextField(
             controller: _precioController,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Precio',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: const Icon(Icons.attach_money),
-            ),
+            decoration: const InputDecoration(labelText: 'Precio'),
           ),
-          const SizedBox(height: 16),
-          
-          // Selector de categoría (reemplaza el campo de descripción)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.category, color: Colors.grey),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _categoriaSeleccionada,
-                      isExpanded: true,
-                      hint: const Text('Seleccionar categoría'),
-                      items: _categorias.map((String categoria) {
-                        return DropdownMenuItem<String>(
-                          value: categoria,
-                          child: Text(categoria),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _categoriaSeleccionada = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _categoriaSeleccionada,
+            items:
+                _categorias.map((cat) {
+                  return DropdownMenuItem(value: cat, child: Text(cat));
+                }).toList(),
+            onChanged: (val) => setState(() => _categoriaSeleccionada = val!),
+            decoration: const InputDecoration(labelText: 'Categoría'),
           ),
-          const SizedBox(height: 32),
-          
-          // Botones
+          const SizedBox(height: 12),
+          TextField(
+            controller: _urlController,
+            decoration: const InputDecoration(
+              labelText: 'URL de imagen (opcional)',
+            ),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                setState(() {
+                  _imageFile = null;
+                  _imageUrlManual = value;
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            icon: const Icon(Icons.image),
+            label: const Text('Seleccionar imagen desde galería'),
+            onPressed: _seleccionarImagen,
+          ),
+          const SizedBox(height: 8),
+          if (_imageFile != null)
+            Image.file(_imageFile!, height: 120, fit: BoxFit.cover),
+          if (_imageFile == null && _imageUrlManual != null)
+            Image.network(_imageUrlManual!, height: 120, fit: BoxFit.cover),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _ocultarFormulario,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Cancelar'),
+                  onPressed: _guardarProducto,
+                  child: const Text('Guardar'),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _guardarProducto,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Guardar'),
+                  onPressed: _ocultarFormulario,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: const Text('Cancelar'),
                 ),
               ),
             ],
@@ -540,25 +243,72 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
       ),
     );
   }
-}
 
-// Enumeración para manejar diferentes tipos de imágenes
-enum ImageType { network, file, asset }
+  Widget _buildLista() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: DropdownButtonFormField<String>(
+            value: _categoriaSeleccionada,
+            items:
+                _categorias.map((cat) {
+                  return DropdownMenuItem(value: cat, child: Text(cat));
+                }).toList(),
+            onChanged: (val) => setState(() => _categoriaSeleccionada = val!),
+            decoration: const InputDecoration(
+              labelText: 'Filtrar por categoría',
+            ),
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<List<Map<String, dynamic>>>(
+            stream: _productService.getProductsByCategory(
+              _categoriaSeleccionada,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const Center(child: Text('No hay productos'));
 
-class Product {
-  final String id;
-  final String name;
-  final double price;
-  final String category; // Reemplaza description por category
-  final ImageType imageType;
-  final String imagePath;
-
-  Product({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.category,
-    required this.imageType,
-    required this.imagePath,
-  });
+              final productos = snapshot.data!;
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: productos.length,
+                itemBuilder: (context, index) {
+                  final p = productos[index];
+                  return Card(
+                    child: ListTile(
+                      leading: Image.network(
+                        p['image'],
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
+                      title: Text(p['name']),
+                      subtitle: Text('S/ ${p['price']} - ${p['category']}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _mostrarFormulario(producto: p),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _eliminarProducto(p['id']),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:taully/pages/limpieza_page.dart';
+
+// Páginas del sistema
 import 'pages/abarrotes_page.dart';
-import 'pages/Golosinas_page.dart';
+import 'pages/golosinas_page.dart';
+import 'pages/limpieza_page.dart';
 import 'pages/ricocan_page.dart';
 import 'pages/pantalla_login.dart';
 import 'pages/admin_productos.dart';
-import 'package:taully/pages/pantalla_Bienvenida.dart';
-import 'package:taully/pages/pantalla_Finaliza.dart';
+import 'pages/pantalla_bienvenida.dart';
+import 'pages/pantalla_finaliza.dart';
+
+// Carrito
 import 'cart.dart';
 
-void main() {
+// Firebase
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(
     ChangeNotifierProvider(create: (context) => Cart(), child: const MyApp()),
   );
@@ -76,7 +87,7 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-          body: const TabBarView(
+          body: TabBarView(
             children: [
               AbarrotesPage(),
               GolosinasPage(),
