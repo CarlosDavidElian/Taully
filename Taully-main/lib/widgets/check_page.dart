@@ -34,63 +34,63 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
         backgroundColor: Colors.orange,
       ),
-      body: _isProcessing
-          ? _buildProcessingView()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Resumen de la compra
-                  _buildOrderSummary(cart),
-                  const SizedBox(height: 24),
+      body:
+          _isProcessing
+              ? _buildProcessingView()
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Resumen de la compra
+                    _buildOrderSummary(cart),
+                    const SizedBox(height: 24),
 
-                  // Información de entrega
-                  _buildDeliveryInfo(),
-                  const SizedBox(height: 24),
+                    // Información de entrega
+                    _buildDeliveryInfo(),
+                    const SizedBox(height: 24),
 
-                  // Métodos de pago
-                  _buildPaymentMethods(),
-                  const SizedBox(height: 32),
+                    // Métodos de pago
+                    _buildPaymentMethods(),
+                    const SizedBox(height: 32),
 
-                  // Botón de confirmar pago
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _selectedPaymentMethod == null ||
-                              _emailController.text.trim().isEmpty ||
-                              _phoneController.text.trim().isEmpty
-                          ? null
-                          : () => _processPayment(context, cart),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Botón de confirmar pago
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed:
+                            _selectedPaymentMethod == null ||
+                                    _emailController.text.trim().isEmpty ||
+                                    _phoneController.text.trim().isEmpty
+                                ? null
+                                : () => _processPayment(context, cart),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
                         ),
-                        elevation: 3,
-                      ),
-                      child: const Text(
-                        'Confirmar Pago',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          'Confirmar Pago',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
     );
   }
 
   Widget _buildOrderSummary(Cart cart) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -103,10 +103,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 SizedBox(width: 8),
                 Text(
                   'Resumen de la compra',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -149,14 +146,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Text(
-                  'Envío:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'S/ 5.00',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                Text('Envío:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('S/ 5.00', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 8),
@@ -165,10 +156,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               children: [
                 const Text(
                   'Total:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   'S/ ${(cart.totalAmount + 5.0).toStringAsFixed(2)}',
@@ -188,9 +176,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   Widget _buildDeliveryInfo() {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Container(
         decoration: BoxDecoration(
@@ -207,10 +193,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 SizedBox(width: 8),
                 Text(
                   'Información de contacto',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -261,9 +244,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   Widget _buildPaymentMethods() {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Container(
         decoration: BoxDecoration(
@@ -280,10 +261,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 SizedBox(width: 8),
                 Text(
                   'Método de pago',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -341,24 +319,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
             color: isSelected ? Colors.orange : Colors.grey[300]!,
             width: isSelected ? 2.0 : 1.0,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.orange.withAlpha(25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : [],
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: Colors.orange.withAlpha(25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : [],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? iconColor.withAlpha(25)
-                    : Colors.grey[100],
+                color: isSelected ? iconColor.withAlpha(25) : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -383,10 +360,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -398,11 +372,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   color: Colors.orange,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               ),
             if (!isSelected)
               const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
@@ -419,124 +389,138 @@ class _CheckoutPageState extends State<CheckoutPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  height: 5,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Pago con Yape/Plin',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.orange, width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder:
+                (_, scrollController) => SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.qr_code_2,
-                          size: 120,
-                          color: Colors.orange.shade800,
+                        const SizedBox(height: 10),
+                        Container(
+                          height: 5,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
+                        const SizedBox(height: 20),
                         const Text(
-                          'Código QR de pago',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          'Pago con Yape/Plin',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.orange, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.qr_code_2,
+                                  size: 120,
+                                  color: Colors.orange.shade800,
+                                ),
+                                const Text(
+                                  'Código QR de pago',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          'Instrucciones de pago',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInstructionStep(
+                          1,
+                          'Abre tu aplicación de Yape o Plin',
+                        ),
+                        _buildInstructionStep(
+                          2,
+                          'Selecciona la opción de "Escanear QR"',
+                        ),
+                        _buildInstructionStep(
+                          3,
+                          'Escanea el código QR mostrado arriba',
+                        ),
+                        _buildInstructionStep(4, 'Confirma el monto a pagar'),
+                        _buildInstructionStep(
+                          5,
+                          'Completa el pago en tu aplicación',
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'También puedes pagar al número',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                '+51 987 654 321',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text('A nombre de: Taully Minimarket.'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Aceptar',
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
-                const Text(
-                  'Instrucciones de pago',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildInstructionStep(1, 'Abre tu aplicación de Yape o Plin'),
-                _buildInstructionStep(2, 'Selecciona la opción de "Escanear QR"'),
-                _buildInstructionStep(3, 'Escanea el código QR mostrado arriba'),
-                _buildInstructionStep(4, 'Confirma el monto a pagar'),
-                _buildInstructionStep(5, 'Completa el pago en tu aplicación'),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'También puedes pagar al número',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '+51 987 654 321',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('A nombre de: Taully Minimarket.'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Aceptar',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-      )
     );
   }
 
@@ -563,12 +547,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 16))),
         ],
       ),
     );
@@ -579,284 +558,308 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController expiryController = TextEditingController();
     final TextEditingController cvvController = TextEditingController();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          String formatCardNumber(String input) {
-            // Eliminar espacios y caracteres no numéricos
-            final cleanInput = input.replaceAll(RegExp(r'\D'), '');
-            
-            // Dividir en grupos de 4 dígitos
-            final parts = <String>[];
-            for (var i = 0; i < cleanInput.length; i += 4) {
-              final end = i + 4 < cleanInput.length ? i + 4 : cleanInput.length;
-              parts.add(cleanInput.substring(i, end));
-            }
-            
-            // Completar con X si es necesario
-            while (parts.length < 4) {
-              parts.add('XXXX');
-            }
-            
-            return parts.join(' ');
-          }
-          
-          return DraggableScrollableSheet(
-            initialChildSize: 0.85,
-            minChildSize: 0.6,
-            maxChildSize: 0.95,
-            expand: false,
-            builder: (_, scrollController) => SingleChildScrollView(
-              controller: scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Container(
-                        height: 5,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Center(
-                      child: Text(
-                        'Pago con Tarjeta',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Tarjeta de crédito visual
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.orange.shade700, Colors.orange.shade300],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Minimarket',
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setState) {
+              String formatCardNumber(String input) {
+                // Eliminar espacios y caracteres no numéricos
+                final cleanInput = input.replaceAll(RegExp(r'\D'), '');
+
+                // Dividir en grupos de 4 dígitos
+                final parts = <String>[];
+                for (var i = 0; i < cleanInput.length; i += 4) {
+                  final end =
+                      i + 4 < cleanInput.length ? i + 4 : cleanInput.length;
+                  parts.add(cleanInput.substring(i, end));
+                }
+
+                // Completar con X si es necesario
+                while (parts.length < 4) {
+                  parts.add('XXXX');
+                }
+
+                return parts.join(' ');
+              }
+
+              return DraggableScrollableSheet(
+                initialChildSize: 0.85,
+                minChildSize: 0.6,
+                maxChildSize: 0.95,
+                expand: false,
+                builder:
+                    (_, scrollController) => SingleChildScrollView(
+                      controller: scrollController,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 10),
+                            Center(
+                              child: Container(
+                                height: 5,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Center(
+                              child: Text(
+                                'Pago con Tarjeta',
                                 style: TextStyle(
-                                  color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Icon(Icons.payment, color: Colors.white, size: 30),
-                            ],
-                          ),
-                          const SizedBox(height: 30),
-                          Text(
-                            cardNumberController.text.isEmpty
-                                ? 'XXXX XXXX XXXX XXXX'
-                                : formatCardNumber(cardNumberController.text),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              letterSpacing: 2,
-                              fontFamily: 'monospace',
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'TITULAR',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
+                            const SizedBox(height: 20),
+                            // Tarjeta de crédito visual
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.orange.shade700,
+                                    Colors.orange.shade300,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
                                   ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Minimarket',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.payment,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 30),
                                   Text(
-                                    nameController.text.isEmpty
-                                        ? 'NOMBRE APELLIDO'
-                                        : nameController.text.toUpperCase(),
+                                    cardNumberController.text.isEmpty
+                                        ? 'XXXX XXXX XXXX XXXX'
+                                        : formatCardNumber(
+                                          cardNumberController.text,
+                                        ),
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
+                                      fontSize: 18,
+                                      letterSpacing: 2,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'TITULAR',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          Text(
+                                            nameController.text.isEmpty
+                                                ? 'NOMBRE APELLIDO'
+                                                : nameController.text
+                                                    .toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'EXP',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          Text(
+                                            expiryController.text.isEmpty
+                                                ? 'MM/YY'
+                                                : expiryController.text,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            // Formulario de tarjeta
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildCardTextField(
+                                  controller: cardNumberController,
+                                  label: 'Número de tarjeta',
+                                  hint: 'xxxx xxxx xxxx xxxx',
+                                  keyboardType: TextInputType.number,
+                                  icon: Icons.credit_card,
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                _buildCardTextField(
+                                  controller: nameController,
+                                  label: 'Nombre en la tarjeta',
+                                  hint: 'Como aparece en la tarjeta',
+                                  icon: Icons.person,
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildCardTextField(
+                                        controller: expiryController,
+                                        label: 'Fecha de vencimiento',
+                                        hint: 'MM/YY',
+                                        keyboardType: TextInputType.datetime,
+                                        icon: Icons.date_range,
+                                        onChanged: (value) {
+                                          setState(() {});
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _buildCardTextField(
+                                        controller: cvvController,
+                                        label: 'CVV',
+                                        hint: '123',
+                                        keyboardType: TextInputType.number,
+                                        icon: Icons.security,
+                                        obscureText: true,
+                                        onChanged: (value) {},
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            // Logos de tarjetas aceptadas
+                            Center(
+                              child: Wrap(
+                                spacing: 16,
+                                children: [
+                                  _buildCardLogo('Visa'),
+                                  _buildCardLogo('Mastercard'),
+                                  _buildCardLogo('Amex'),
+                                  _buildCardLogo('Diners'),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Nota de seguridad
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.security,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Expanded(
+                                    child: Text(
+                                      'Tus datos de pago están protegidos con encriptación de nivel bancario.',
+                                      style: TextStyle(color: Colors.grey),
                                     ),
                                   ),
                                 ],
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'EXP',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  Text(
-                                    expiryController.text.isEmpty
-                                        ? 'MM/YY'
-                                        : expiryController.text,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    // Formulario de tarjeta
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildCardTextField(
-                          controller: cardNumberController,
-                          label: 'Número de tarjeta',
-                          hint: 'xxxx xxxx xxxx xxxx',
-                          keyboardType: TextInputType.number,
-                          icon: Icons.credit_card,
-                          onChanged: (value) {
-                            setState(() {});
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCardTextField(
-                          controller: nameController,
-                          label: 'Nombre en la tarjeta',
-                          hint: 'Como aparece en la tarjeta',
-                          icon: Icons.person,
-                          onChanged: (value) {
-                            setState(() {});
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildCardTextField(
-                                controller: expiryController,
-                                label: 'Fecha de vencimiento',
-                                hint: 'MM/YY',
-                                keyboardType: TextInputType.datetime,
-                                icon: Icons.date_range,
-                                onChanged: (value) {
-                                  setState(() {});
-                                },
-                              ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildCardTextField(
-                                controller: cvvController,
-                                label: 'CVV',
-                                hint: '123',
-                                keyboardType: TextInputType.number,
-                                icon: Icons.security,
-                                obscureText: true,
-                                onChanged: (value) {},
+                            const SizedBox(height: 30),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Aceptar',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Logos de tarjetas aceptadas
-                    Center(
-                      child: Wrap(
-                        spacing: 16,
-                        children: [
-                          _buildCardLogo('Visa'),
-                          _buildCardLogo('Mastercard'),
-                          _buildCardLogo('Amex'),
-                          _buildCardLogo('Diners'),
-                        ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    // Nota de seguridad
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.security, color: Colors.grey),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Tus datos de pago están protegidos con encriptación de nivel bancario.',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Aceptar',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-      ),
+              );
+            },
+          ),
     );
   }
 
@@ -874,10 +877,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -941,10 +941,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           const SizedBox(height: 24),
           const Text(
             'Procesando tu pago...',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Container(
@@ -953,7 +950,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               color: Colors.orange.withAlpha(25),
               borderRadius: BorderRadius.circular(20),
             ),
-            child:  Text(
+            child: Text(
               'Por favor, no cierres esta página',
               style: TextStyle(color: Colors.orange.shade800),
             ),
@@ -985,65 +982,63 @@ class _CheckoutPageState extends State<CheckoutPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade100,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.check_circle,
-                color: Colors.green.shade700,
-                size: 64,
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              '¡Pago completado!',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Tu pedido ha sido procesado exitosamente. Recibirás un correo con los detalles de tu compra.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.green.shade700,
+                    size: 64,
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Volver a la tienda',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+                const SizedBox(height: 24),
+                const Text(
+                  '¡Pago completado!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Tu pedido ha sido procesado exitosamente. Recibirás un correo con los detalles de tu compra.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Volver a la tienda',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

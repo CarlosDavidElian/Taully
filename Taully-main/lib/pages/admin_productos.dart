@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+import 'dart:io';
+
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../services/product_service.dart';
 
@@ -18,6 +21,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   final List<String> _categorias = [
     'Abarrotes',
@@ -25,52 +29,38 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     'Prod.Limpieza',
     'Comd.Animales',
   ];
+
   String _categoriaSeleccionada = 'Abarrotes';
+  String _filtroNombre = '';
   File? _imageFile;
   String? _imageUrlManual;
   final ImagePicker _picker = ImagePicker();
   bool _isAdding = false;
   String? _editId;
 
-  void _mostrarFormulario({Map<String, dynamic>? producto}) {
-    if (producto != null) {
-      _editId = producto['id'];
-      _nombreController.text = producto['name'];
-      _precioController.text = producto['price'].toString();
-      _categoriaSeleccionada = producto['category'];
-      _imageUrlManual = producto['image'];
-      _urlController.text = producto['image'] ?? '';
-      _imageFile = null;
-    } else {
-      _editId = null;
-      _nombreController.clear();
-      _precioController.clear();
-      _urlController.clear();
-      _imageUrlManual = null;
-      _categoriaSeleccionada = _categorias[0];
-      _imageFile = null;
-    }
-    setState(() => _isAdding = true);
-  }
-
-  void _ocultarFormulario() {
-    setState(() {
-      _isAdding = false;
-      _editId = null;
-      _imageFile = null;
-      _imageUrlManual = null;
-      _urlController.clear();
-    });
-  }
-
   Future<void> _seleccionarImagen() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-        _imageUrlManual = null;
-        _urlController.clear();
-      });
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        final ext = path.extension(pickedFile.path).toLowerCase();
+        if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].contains(ext)) {
+          setState(() {
+            _imageFile = File(pickedFile.path);
+            _imageUrlManual = null;
+            _urlController.clear();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Formato no válido. Usa JPG, PNG, GIF, etc.'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al seleccionar imagen: $e')),
+      );
     }
   }
 
@@ -87,9 +77,9 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
   }
 
   Future<void> _guardarProducto() async {
-    final String nombre = _nombreController.text.trim();
-    final String precioTexto = _precioController.text.trim();
-    final String urlManual = _urlController.text.trim();
+    final nombre = _nombreController.text.trim();
+    final precioTexto = _precioController.text.trim();
+    final urlManual = _urlController.text.trim();
 
     if (nombre.isEmpty || precioTexto.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,7 +88,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
       return;
     }
 
-    double? precio = double.tryParse(precioTexto);
+    final precio = double.tryParse(precioTexto);
     if (precio == null) {
       ScaffoldMessenger.of(
         context,
@@ -114,7 +104,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
       imageUrl = urlManual;
     }
 
-    final productoData = {
+    final data = {
       'name': nombre,
       'price': precio,
       'category': _categoriaSeleccionada,
@@ -123,22 +113,34 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
 
     try {
       if (_editId != null) {
-        await _productService.updateProduct(_editId!, productoData);
+        await _productService.updateProduct(_editId!, data);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Producto actualizado')));
       } else {
-        await _productService.addProduct(productoData);
+        await _productService.addProduct(data);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Producto agregado')));
       }
-      _ocultarFormulario();
+      _resetFormulario();
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+
+  void _resetFormulario() {
+    setState(() {
+      _isAdding = false;
+      _editId = null;
+      _imageFile = null;
+      _imageUrlManual = null;
+      _urlController.clear();
+      _nombreController.clear();
+      _precioController.clear();
+    });
   }
 
   Future<void> _eliminarProducto(String id) async {
@@ -154,6 +156,61 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     }
   }
 
+  Future<void> _exportarPDF(List<Map<String, dynamic>> productos) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        build:
+            (context) => [
+              pw.Header(
+                level: 0,
+                child: pw.Text('Lista de Productos - $_categoriaSeleccionada'),
+              ),
+              pw.Table.fromTextArray(
+                headers: ['Nombre', 'Precio', 'Categoría'],
+                data:
+                    productos
+                        .map(
+                          (p) => [p['name'], 'S/ ${p['price']}', p['category']],
+                        )
+                        .toList(),
+              ),
+            ],
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
+  Future<void> _exportarTodosLosProductos() async {
+    final productos = await _productService.getAllProducts().first;
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        build:
+            (context) => [
+              pw.Header(
+                level: 0,
+                child: pw.Text('Lista completa de productos'),
+              ),
+              pw.Table.fromTextArray(
+                headers: ['Nombre', 'Precio', 'Categoría'],
+                data:
+                    productos
+                        .map(
+                          (p) => [p['name'], 'S/ ${p['price']}', p['category']],
+                        )
+                        .toList(),
+              ),
+            ],
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,7 +219,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
       floatingActionButton:
           !_isAdding
               ? FloatingActionButton(
-                onPressed: () => _mostrarFormulario(),
+                onPressed: () => setState(() => _isAdding = true),
                 child: const Icon(Icons.add),
               )
               : null,
@@ -232,7 +289,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: _ocultarFormulario,
+                  onPressed: _resetFormulario,
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
                   child: const Text('Cancelar'),
                 ),
@@ -248,7 +305,52 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar por nombre',
+                  ),
+                  onChanged:
+                      (val) => setState(
+                        () => _filtroNombre = val.trim().toLowerCase(),
+                      ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                tooltip: 'Exportar esta categoría',
+                onPressed: () {
+                  _productService
+                      .getProductsByCategory(_categoriaSeleccionada)
+                      .first
+                      .then((productos) {
+                        final filtrados =
+                            productos
+                                .where(
+                                  (p) => p['name']
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(_filtroNombre),
+                                )
+                                .toList();
+                        _exportarPDF(filtrados);
+                      });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.file_copy),
+                tooltip: 'Exportar todo',
+                onPressed: _exportarTodosLosProductos,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DropdownButtonFormField<String>(
             value: _categoriaSeleccionada,
             items:
@@ -272,7 +374,15 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
               if (!snapshot.hasData || snapshot.data!.isEmpty)
                 return const Center(child: Text('No hay productos'));
 
-              final productos = snapshot.data!;
+              final productos =
+                  snapshot.data!
+                      .where(
+                        (p) => p['name'].toString().toLowerCase().contains(
+                          _filtroNombre,
+                        ),
+                      )
+                      .toList();
+
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: productos.length,
@@ -293,7 +403,18 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _mostrarFormulario(producto: p),
+                            onPressed: () {
+                              setState(() {
+                                _editId = p['id'];
+                                _nombreController.text = p['name'];
+                                _precioController.text = p['price'].toString();
+                                _categoriaSeleccionada = p['category'];
+                                _imageUrlManual = p['image'];
+                                _urlController.text = p['image'];
+                                _imageFile = null;
+                                _isAdding = true;
+                              });
+                            },
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),

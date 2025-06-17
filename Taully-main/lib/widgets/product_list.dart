@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../cart.dart'; // Importamos la clase Cart
-import 'package:taully/widgets/check_page.dart'; // Importamos la página de checkout
+import '../cart.dart';
+import '../widgets/check_page.dart';
 
 class ProductListPage extends StatelessWidget {
   final String category;
@@ -15,7 +15,7 @@ class ProductListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<Cart>(context); // Accedemos al carrito global
+    final cart = Provider.of<Cart>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -26,11 +26,9 @@ class ProductListPage extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.shopping_cart),
-                onPressed: () {
-                  _showCartDialog(context, cart);
-                },
+                onPressed: () => _showCartDialog(context),
               ),
-              if (cart.totalQuantity > 0) // Cambiamos itemCount por totalQuantity
+              if (cart.totalQuantity > 0)
                 Positioned(
                   right: 6,
                   top: 6,
@@ -41,7 +39,7 @@ class ProductListPage extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      '${cart.totalQuantity}', // Mostramos el total de productos
+                      '${cart.totalQuantity}',
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
@@ -101,10 +99,7 @@ class ProductListPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         ElevatedButton(
-                          onPressed:
-                              () => cart.addToCart(
-                                item,
-                              ), // Agregar al carrito global
+                          onPressed: () => cart.addToCart(item),
                           child: const Text('Agregar'),
                         ),
                       ],
@@ -119,132 +114,133 @@ class ProductListPage extends StatelessWidget {
     );
   }
 
-  void _showCartDialog(BuildContext context, Cart cart) {
+  void _showCartDialog(BuildContext context) {
+    final cart = Provider.of<Cart>(context, listen: false);
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Carrito de compras'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (cart.items.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20.0),
-                    child: Text('Tu carrito está vacío'),
-                  )
-                else
-                  ...cart.items.map((item) {
-                    // Obtenemos la cantidad del producto
-                    final int quantity = item['quantity'] as int;
-                    
-                    return ListTile(
-                      title: Row(
+          content: Consumer<Cart>(
+            builder: (context, cart, child) {
+              if (cart.items.isEmpty) {
+                return const Text('Tu carrito está vacío');
+              }
+              return SizedBox(
+                width: double.maxFinite,
+                height: 320,
+                child: ListView.builder(
+                  itemCount: cart.items.length,
+                  itemBuilder: (context, index) {
+                    final item = cart.items[index];
+                    final quantity = item['quantity'] as int;
+                    final price = item['price'] as double;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(item['name']),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              item['image'],
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      const Icon(Icons.image_not_supported),
+                            ),
                           ),
-                          Text(
-                            'x$quantity', // Mostramos la cantidad
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['name'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text('S/ $price x $quantity'),
+                                Text(
+                                  'Total: S/ ${(price * quantity).toStringAsFixed(2)}',
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                      ),
+                                      onPressed: () {
+                                        cart.removeFromCart(item);
+                                        if (cart.items.isEmpty)
+                                          Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    Text('$quantity'),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.add_circle_outline,
+                                      ),
+                                      onPressed: () => cart.addToCart(item),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        cart.removeCompleteItem(item['name']);
+                                        if (cart.items.isEmpty)
+                                          Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      subtitle: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('S/ ${item['price'].toStringAsFixed(2)}'),
-                          Text(
-                            'Total: S/ ${(item['price'] * quantity).toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Botón para reducir cantidad
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, size: 20),
-                            onPressed: () {
-                              cart.removeFromCart(item);
-                              // Si ya no hay items, cerramos el diálogo
-                              if (cart.items.isEmpty) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                          ),
-                          // Botón para eliminar completamente el producto
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
-                            onPressed: () {
-                              cart.removeCompleteItem(item['name']);
-                              // Si ya no hay items, cerramos el diálogo
-                              if (cart.items.isEmpty) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                          ),
-                        ],
-                      ),
                     );
-                  }),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Total:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'S/ ${cart.totalAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
+                  },
                 ),
-              ],
-            ),
+              );
+            },
           ),
-          actions: <Widget>[
+          actions: [
+            Consumer<Cart>(
+              builder:
+                  (context, cart, _) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Total: S/ ${cart.totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+            ),
             TextButton(
+              onPressed: () => cart.clear(),
+              child: const Text('Vaciar carrito'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Seguir comprando'),
+            ),
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const CheckoutPage()),
+                );
               },
-              child: const Text('Cerrar'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text('Pagar', style: TextStyle(color: Colors.white)),
             ),
-            if (cart.items.isNotEmpty)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Navegamos a la página de checkout en lugar de mostrar el modal
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CheckoutPage(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text(
-                  'Pagar',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
           ],
         );
       },
