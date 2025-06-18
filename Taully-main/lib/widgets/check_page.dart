@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../cart.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -11,12 +15,14 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   String? _selectedPaymentMethod;
+  final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   bool _isProcessing = false;
 
   @override
   void dispose() {
+    _nombreController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -60,6 +66,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       child: ElevatedButton(
                         onPressed:
                             _selectedPaymentMethod == null ||
+                                    _nombreController.text.trim().isEmpty ||
                                     _emailController.text.trim().isEmpty ||
                                     _phoneController.text.trim().isEmpty
                                 ? null
@@ -198,8 +205,37 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Nombre completo
+            TextField(
+              controller: _nombreController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Nombre completo',
+                hintText: 'Ej: Juan Pérez',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.orange, width: 2),
+                ),
+                prefixIcon: const Icon(
+                  Icons.account_circle,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Correo electrónico
             TextField(
               controller: _emailController,
+              onChanged: (_) => setState(() {}),
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Correo electrónico',
@@ -217,9 +253,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 prefixIcon: const Icon(Icons.email, color: Colors.grey),
               ),
             ),
+
             const SizedBox(height: 12),
+
+            // Número de teléfono
             TextField(
               controller: _phoneController,
+              onChanged: (_) => setState(() {}),
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
                 labelText: 'Número de teléfono',
@@ -961,21 +1001,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   void _processPayment(BuildContext context, Cart cart) async {
-    // Mostrar vista de procesamiento
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
 
-    // Simular procesamiento de pago
-    await Future.delayed(const Duration(seconds: 3));
+    final resumen = generarResumenPedido(cart.items);
+    final total = cart.totalAmount + 5.0;
 
-    // Limpiar el carrito después del pago exitoso
-    cart.clear();
+    try {
+      final url = Uri.parse(
+        'https://us-central1-flutter-base-de-datos-ed70a.cloudfunctions.net/enviarCorreo',
+      );
 
-    // Mostrar confirmación
-    if (mounted) {
-      _showPaymentSuccess(context);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nombre': _nombreController.text.trim(),
+          'email': _emailController.text.trim(),
+          'orderDetails': resumen,
+          'total': total.toStringAsFixed(2),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        cart.clear();
+        if (mounted) _showPaymentSuccess(context);
+      } else {
+        throw Exception('Error en el servidor: ${response.body}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo enviar el correo: $e')),
+        );
+      }
     }
+
+    setState(() => _isProcessing = false);
   }
 
   void _showPaymentSuccess(BuildContext context) {
@@ -1040,5 +1101,48 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
     );
+  }
+}
+
+String generarResumenPedido(List<Map<String, dynamic>> items) {
+  return items
+      .map((item) {
+        final subtotal = (item['price'] * item['quantity']).toStringAsFixed(2);
+        return '- ${item['name']} x${item['quantity']} (S/ $subtotal)';
+      })
+      .join('\n');
+}
+
+Future<void> enviarCorreoDesdeFlutter({
+  required String nombre,
+  required String email,
+  required String resumen,
+  required double total,
+}) async {
+  final url = Uri.parse(
+    'https://us-central1-flutter-base-de-datos-ed70a.cloudfunctions.net/enviarCorreo',
+  );
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'nombre': nombre,
+        'email': email,
+        'orderDetails': resumen,
+        'total': total.toStringAsFixed(2),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('✅ Correo enviado correctamente');
+    } else {
+      print('❌ Error en el servidor: ${response.body}');
+      throw Exception('Error del servidor');
+    }
+  } catch (e) {
+    print('❌ Error al conectar con la función: $e');
+    rethrow;
   }
 }
