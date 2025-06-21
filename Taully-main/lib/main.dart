@@ -10,12 +10,15 @@ import 'pages/pantalla_login.dart';
 import 'pages/admin_productos.dart';
 import 'pages/pantalla_bienvenida.dart';
 import 'pages/pantalla_finaliza.dart';
+import 'pages/pantalla_registro.dart';
 
 // Carrito
 import 'cart.dart';
 
 // Firebase
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'firebase_options.dart';
 
 void main() async {
@@ -47,6 +50,7 @@ class MyApp extends StatelessWidget {
         '/Finaliza': (context) => PantallaFinaliza(),
         '/login': (context) => PantallaLogin(),
         '/admin-productos': (context) => const AdminProductosPage(),
+        '/registro': (context) => const PantallaRegistro(),
       },
       debugShowCheckedModeBanner: false,
     );
