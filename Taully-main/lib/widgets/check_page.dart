@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import '../cart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -1007,6 +1006,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final total = cart.totalAmount + 5.0;
 
     try {
+      // 1. Enviar correo
       final url = Uri.parse(
         'https://us-central1-flutter-base-de-datos-ed70a.cloudfunctions.net/enviarCorreo',
       );
@@ -1022,21 +1022,39 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }),
       );
 
-      if (response.statusCode == 200) {
-        cart.clear();
-        if (mounted) _showPaymentSuccess(context);
-      } else {
-        throw Exception('Error en el servidor: ${response.body}');
+      if (response.statusCode != 200) {
+        throw Exception('Error al enviar el correo');
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se pudo enviar el correo: $e')),
-        );
-      }
-    }
 
-    setState(() => _isProcessing = false);
+      // 2. Guardar en Firestore
+      await FirebaseFirestore.instance.collection('pedidos').add({
+        'nombre': _nombreController.text.trim(),
+        'email': _emailController.text.trim(),
+        'telefono': _phoneController.text.trim(),
+        'total': total,
+        'estado': 'Pendiente',
+        'fecha': Timestamp.now(),
+        'items':
+            cart.items
+                .map(
+                  (item) => {
+                    'name': item['name'],
+                    'price': item['price'],
+                    'quantity': item['quantity'],
+                  },
+                )
+                .toList(),
+      });
+
+      // 3. Limpiar y confirmar
+      cart.clear();
+      if (mounted) _showPaymentSuccess(context);
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   void _showPaymentSuccess(BuildContext context) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path/path.dart' as path;
-import 'dart:io';
-
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'dart:io';
 
 import '../services/product_service.dart';
 
@@ -13,11 +13,14 @@ class AdminProductosPage extends StatefulWidget {
   const AdminProductosPage({Key? key}) : super(key: key);
 
   @override
-  _AdminProductosPageState createState() => _AdminProductosPageState();
+  State<AdminProductosPage> createState() => _AdminProductosPageState();
 }
 
-class _AdminProductosPageState extends State<AdminProductosPage> {
+class _AdminProductosPageState extends State<AdminProductosPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final ProductService _productService = ProductService();
+
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
@@ -29,7 +32,6 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     'Prod.Limpieza',
     'Comd.Animales',
   ];
-
   String _categoriaSeleccionada = 'Abarrotes';
   String _filtroNombre = '';
   File? _imageFile;
@@ -38,29 +40,30 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
   bool _isAdding = false;
   String? _editId;
 
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  // ---------- PRODUCTOS ----------
   Future<void> _seleccionarImagen() async {
-    try {
-      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        final ext = path.extension(pickedFile.path).toLowerCase();
-        if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].contains(ext)) {
-          setState(() {
-            _imageFile = File(pickedFile.path);
-            _imageUrlManual = null;
-            _urlController.clear();
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Formato no válido. Usa JPG, PNG, GIF, etc.'),
-            ),
-          );
-        }
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final ext = path.extension(pickedFile.path).toLowerCase();
+      if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].contains(ext)) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _imageUrlManual = null;
+          _urlController.clear();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Formato no válido. Usa JPG, PNG, GIF...'),
+          ),
+        );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al seleccionar imagen: $e')),
-      );
     }
   }
 
@@ -81,20 +84,10 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     final precioTexto = _precioController.text.trim();
     final urlManual = _urlController.text.trim();
 
-    if (nombre.isEmpty || precioTexto.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nombre y precio son obligatorios')),
-      );
-      return;
-    }
+    if (nombre.isEmpty || precioTexto.isEmpty) return;
 
     final precio = double.tryParse(precioTexto);
-    if (precio == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Precio inválido')));
-      return;
-    }
+    if (precio == null) return;
 
     String imageUrl = 'https://via.placeholder.com/150';
     if (_imageFile != null) {
@@ -111,24 +104,13 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
       'image': imageUrl,
     };
 
-    try {
-      if (_editId != null) {
-        await _productService.updateProduct(_editId!, data);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Producto actualizado')));
-      } else {
-        await _productService.addProduct(data);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Producto agregado')));
-      }
-      _resetFormulario();
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    if (_editId != null) {
+      await _productService.updateProduct(_editId!, data);
+    } else {
+      await _productService.addProduct(data);
     }
+
+    _resetFormulario();
   }
 
   void _resetFormulario() {
@@ -144,16 +126,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
   }
 
   Future<void> _eliminarProducto(String id) async {
-    try {
-      await _productService.deleteProduct(id);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Producto eliminado')));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al eliminar: $e')));
-    }
+    await _productService.deleteProduct(id);
   }
 
   Future<void> _exportarPDF(List<Map<String, dynamic>> productos) async {
@@ -185,45 +158,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
 
   Future<void> _exportarTodosLosProductos() async {
     final productos = await _productService.getAllProducts().first;
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        build:
-            (context) => [
-              pw.Header(
-                level: 0,
-                child: pw.Text('Lista completa de productos'),
-              ),
-              pw.Table.fromTextArray(
-                headers: ['Nombre', 'Precio', 'Categoría'],
-                data:
-                    productos
-                        .map(
-                          (p) => [p['name'], 'S/ ${p['price']}', p['category']],
-                        )
-                        .toList(),
-              ),
-            ],
-      ),
-    );
-
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Administrar Productos')),
-      body: _isAdding ? _buildFormulario() : _buildLista(),
-      floatingActionButton:
-          !_isAdding
-              ? FloatingActionButton(
-                onPressed: () => setState(() => _isAdding = true),
-                child: const Icon(Icons.add),
-              )
-              : null,
-    );
+    await _exportarPDF(productos);
   }
 
   Widget _buildFormulario() {
@@ -233,7 +168,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
         children: [
           TextField(
             controller: _nombreController,
-            decoration: const InputDecoration(labelText: 'Nombre del producto'),
+            decoration: const InputDecoration(labelText: 'Nombre'),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -245,9 +180,9 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
           DropdownButtonFormField<String>(
             value: _categoriaSeleccionada,
             items:
-                _categorias.map((cat) {
-                  return DropdownMenuItem(value: cat, child: Text(cat));
-                }).toList(),
+                _categorias
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
             onChanged: (val) => setState(() => _categoriaSeleccionada = val!),
             decoration: const InputDecoration(labelText: 'Categoría'),
           ),
@@ -257,22 +192,21 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
             decoration: const InputDecoration(
               labelText: 'URL de imagen (opcional)',
             ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
+            onChanged: (val) {
+              if (val.isNotEmpty) {
                 setState(() {
                   _imageFile = null;
-                  _imageUrlManual = value;
+                  _imageUrlManual = val;
                 });
               }
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           TextButton.icon(
             icon: const Icon(Icons.image),
-            label: const Text('Seleccionar imagen desde galería'),
+            label: const Text('Seleccionar desde galería'),
             onPressed: _seleccionarImagen,
           ),
-          const SizedBox(height: 8),
           if (_imageFile != null)
             Image.file(_imageFile!, height: 120, fit: BoxFit.cover),
           if (_imageFile == null && _imageUrlManual != null)
@@ -286,7 +220,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
                   child: const Text('Guardar'),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
                   onPressed: _resetFormulario,
@@ -301,7 +235,7 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
     );
   }
 
-  Widget _buildLista() {
+  Widget _buildListaProductos() {
     return Column(
       children: [
         Padding(
@@ -322,7 +256,6 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
               ),
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf),
-                tooltip: 'Exportar esta categoría',
                 onPressed: () {
                   _productService
                       .getProductsByCategory(_categoriaSeleccionada)
@@ -343,7 +276,6 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
               ),
               IconButton(
                 icon: const Icon(Icons.file_copy),
-                tooltip: 'Exportar todo',
                 onPressed: _exportarTodosLosProductos,
               ),
             ],
@@ -354,9 +286,11 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
           child: DropdownButtonFormField<String>(
             value: _categoriaSeleccionada,
             items:
-                _categorias.map((cat) {
-                  return DropdownMenuItem(value: cat, child: Text(cat));
-                }).toList(),
+                _categorias
+                    .map(
+                      (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                    )
+                    .toList(),
             onChanged: (val) => setState(() => _categoriaSeleccionada = val!),
             decoration: const InputDecoration(
               labelText: 'Filtrar por categoría',
@@ -369,22 +303,10 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
               _categoriaSeleccionada,
             ),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting)
+              if (!snapshot.hasData)
                 return const Center(child: CircularProgressIndicator());
-              if (!snapshot.hasData || snapshot.data!.isEmpty)
-                return const Center(child: Text('No hay productos'));
-
-              final productos =
-                  snapshot.data!
-                      .where(
-                        (p) => p['name'].toString().toLowerCase().contains(
-                          _filtroNombre,
-                        ),
-                      )
-                      .toList();
-
+              final productos = snapshot.data!;
               return ListView.builder(
-                padding: const EdgeInsets.all(16),
                 itemCount: productos.length,
                 itemBuilder: (context, index) {
                   final p = productos[index];
@@ -430,6 +352,173 @@ class _AdminProductosPageState extends State<AdminProductosPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildListaPedidos() {
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('pedidos')
+              .orderBy('fecha', descending: true)
+              .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+
+        return ListView.builder(
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final pedido = docs[index];
+            final data = pedido.data() as Map<String, dynamic>;
+            final estado = data['estado'] ?? 'Pendiente';
+
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: ListTile(
+                title: Text('${data['nombre']} - $estado'),
+                subtitle: Text('Total: S/ ${data['total']}'),
+                onTap: () => _mostrarDetallePedido(context, data),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        estado == 'Pendiente'
+                            ? Icons.check_circle
+                            : Icons.cancel,
+                        color:
+                            estado == 'Pendiente' ? Colors.green : Colors.red,
+                      ),
+                      tooltip:
+                          estado == 'Pendiente'
+                              ? 'Marcar como finalizado'
+                              : 'Marcar como pendiente',
+                      onPressed: () async {
+                        final nuevoEstado =
+                            estado == 'Pendiente' ? 'Finalizado' : 'Pendiente';
+
+                        await FirebaseFirestore.instance
+                            .collection('pedidos')
+                            .doc(pedido.id)
+                            .update({'estado': nuevoEstado});
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Pedido marcado como $nuevoEstado'),
+                            backgroundColor:
+                                nuevoEstado == 'Finalizado'
+                                    ? Colors.green
+                                    : Colors.red,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Color.fromARGB(255, 228, 151, 9),
+                      ),
+                      tooltip: 'Eliminar pedido',
+                      onPressed: () {
+                        FirebaseFirestore.instance
+                            .collection('pedidos')
+                            .doc(pedido.id)
+                            .delete();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ---------- UI PRINCIPAL ----------
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Administrar Productos'),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(icon: Icon(Icons.inventory), text: 'Productos'),
+              Tab(icon: Icon(Icons.receipt_long), text: 'Pedidos'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _isAdding ? _buildFormulario() : _buildListaProductos(),
+            _buildListaPedidos(),
+          ],
+        ),
+        floatingActionButton:
+            _tabController.index == 0 && !_isAdding
+                ? FloatingActionButton(
+                  onPressed: () => setState(() => _isAdding = true),
+                  child: const Icon(Icons.add),
+                )
+                : null,
+      ),
+    );
+  }
+
+  void _mostrarDetallePedido(
+    BuildContext context,
+    Map<String, dynamic> pedido,
+  ) {
+    final List<dynamic> items = pedido['items'] ?? [];
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Detalle del Pedido'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('📦 Cliente: ${pedido['nombre']}'),
+                  Text('📧 Correo: ${pedido['email']}'),
+                  Text('📱 Teléfono: ${pedido['telefono']}'),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '🛍️ Productos:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ...items.map((item) {
+                    final subtotal = (item['price'] * item['quantity'])
+                        .toStringAsFixed(2);
+                    return Text(
+                      '- ${item['name']} x${item['quantity']} (S/ $subtotal)',
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  Text('🧾 Total: S/ ${pedido['total']}'),
+                  Text('📌 Estado: ${pedido['estado']}'),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
     );
   }
 }
