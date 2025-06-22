@@ -2,14 +2,11 @@
 import 'package:flutter/material.dart';
 
 class PantallaFinaliza extends StatelessWidget {
-  const PantallaFinaliza({super.key}); 
+  const PantallaFinaliza({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Compra Exitosa'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Compra Exitosa'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -19,10 +16,7 @@ class PantallaFinaliza extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               '¡Gracias por tu compra!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
             Text(
