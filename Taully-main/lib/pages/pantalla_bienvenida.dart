@@ -106,7 +106,7 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
 
             const SizedBox(height: 10),
             const Text(
-              'Tu solución de compras',
+              'A tu solución de compras',
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
             const SizedBox(height: 30),
