@@ -5,7 +5,8 @@ import '../cart.dart';
 import '../widgets/check_page.dart';
 
 class RicocanPage extends StatefulWidget {
-  const RicocanPage({super.key});
+  final String searchTerm;
+  const RicocanPage({super.key, this.searchTerm = ''});
 
   @override
   State<RicocanPage> createState() => _RicocanPageState();
@@ -20,159 +21,165 @@ class _RicocanPageState extends State<RicocanPage> {
       stream: _productService.getProductsByCategory('Comd.Animales'),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Scaffold(
-            body: Center(child: Text('No hay productos disponibles')),
-          );
+          return const Center(child: Text('No hay productos disponibles'));
         }
 
-        final productos = snapshot.data!;
+        final productos =
+            snapshot.data!
+                .where(
+                  (p) => p['name'].toString().toLowerCase().contains(
+                    widget.searchTerm.toLowerCase(),
+                  ),
+                )
+                .toList();
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Comida para Animales'),
             backgroundColor: Colors.green.shade400,
-            actions: [
-              Consumer<Cart>(
-                builder:
-                    (context, cart, _) => Stack(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.shopping_cart),
-                          onPressed: () => _mostrarCarrito(context),
-                        ),
-                        if (cart.totalQuantity > 0)
-                          Positioned(
-                            right: 6,
-                            top: 6,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${cart.totalQuantity}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+            actions: [_buildCartIcon(context)],
+          ),
+          body: SafeArea(
+            child:
+                productos.isEmpty
+                    ? const Center(child: Text('No se encontraron productos'))
+                    : _buildGrid(productos),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCartIcon(BuildContext context) {
+    return Consumer<Cart>(
+      builder:
+          (context, cart, _) => Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart),
+                onPressed: () => _mostrarCarrito(context),
               ),
+              if (cart.totalQuantity > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${cart.totalQuantity}',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ),
+                ),
             ],
           ),
-          body: GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.60,
-            ),
-            itemCount: productos.length,
-            itemBuilder: (context, index) {
-              final item = productos[index];
+    );
+  }
 
-              return Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+  Widget _buildGrid(List<Map<String, dynamic>> productos) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.60,
+      ),
+      itemCount: productos.length,
+      itemBuilder: (context, index) {
+        final item = productos[index];
+
+        return Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AspectRatio(
+                aspectRatio: 1.1,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: Image.network(
+                    item['image'],
+                    fit: BoxFit.contain,
+                    errorBuilder:
+                        (_, __, ___) =>
+                            const Icon(Icons.broken_image, size: 40),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 1.1,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        item['name'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
-                        child: Image.network(
-                          item['image'],
-                          fit: BoxFit.contain,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, size: 40),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'S/ ${item['price'].toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade800,
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              item['name'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'S/ ${item['price'].toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green.shade800,
-                              ),
-                            ),
-                            const Spacer(),
-                            ElevatedButton.icon(
-                              icon: const Icon(
-                                Icons.add_shopping_cart,
-                                size: 18,
-                              ),
-                              label: const Text('Agregar'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade600,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {
-                                final cart = Provider.of<Cart>(
-                                  context,
-                                  listen: false,
-                                );
-                                cart.addToCart(item);
-                                ScaffoldMessenger.of(context)
-                                  ..hideCurrentSnackBar()
-                                  ..showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${item['name']} agregado al carrito',
-                                      ),
-                                      duration: const Duration(
-                                        milliseconds: 800,
-                                      ),
-                                    ),
-                                  );
-                              },
-                            ),
-                          ],
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.add_shopping_cart, size: 18),
+                        label: const Text('Agregar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
+                        onPressed: () {
+                          final cart = Provider.of<Cart>(
+                            context,
+                            listen: false,
+                          );
+                          cart.addToCart(item);
+
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${item['name']} agregado al carrito',
+                                ),
+                                duration: const Duration(milliseconds: 800),
+                              ),
+                            );
+                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         );
       },
@@ -231,7 +238,6 @@ class _RicocanPageState extends State<RicocanPage> {
                                   Text(
                                     'Total: S/ ${(price * quantity).toStringAsFixed(2)}',
                                   ),
-                                  const SizedBox(height: 4),
                                   Row(
                                     children: [
                                       IconButton(
@@ -240,8 +246,9 @@ class _RicocanPageState extends State<RicocanPage> {
                                         ),
                                         onPressed: () {
                                           cart.removeFromCart(item);
-                                          if (cart.items.isEmpty)
+                                          if (cart.items.isEmpty) {
                                             Navigator.of(context).pop();
+                                          }
                                         },
                                       ),
                                       Text('$quantity'),
@@ -258,8 +265,9 @@ class _RicocanPageState extends State<RicocanPage> {
                                         ),
                                         onPressed: () {
                                           cart.removeCompleteItem(item['name']);
-                                          if (cart.items.isEmpty)
+                                          if (cart.items.isEmpty) {
                                             Navigator.of(context).pop();
+                                          }
                                         },
                                       ),
                                     ],
