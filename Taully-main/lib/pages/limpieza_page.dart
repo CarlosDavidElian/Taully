@@ -91,7 +91,7 @@ class _LimpiezaPageState extends State<LimpiezaPage> {
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.60,
+        childAspectRatio: 0.59,
       ),
       itemCount: productos.length,
       itemBuilder: (context, index) {
