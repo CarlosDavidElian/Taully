@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 // Función HTTP para enviar correo
 exports.enviarCorreo = functions.https.onRequest((req, res) => {
   cors(req, res, async () => {
-    const { nombre, email, orderDetails, total } = req.body;
+    const { nombre, email, direccion, orderDetails, total } = req.body; // ✅ Añadido: direccion
 
     const mailOptions = {
       from: 'Taully Minimarket <tucorreo@gmail.com>',
@@ -33,6 +33,8 @@ exports.enviarCorreo = functions.https.onRequest((req, res) => {
           <pre style="background: #f3f3f3; padding: 16px; border-radius: 6px; font-size: 15px; line-height: 1.6; color: #2c3e50; white-space: pre-wrap;">${orderDetails}</pre>
 
           <p style="font-size: 16px;"><strong>Total a pagar:</strong> <span style="color: #2980b9; font-weight: bold;">S/ ${total}</span></p>
+
+          <p style="font-size: 16px; margin-top: 12px;"><strong>Dirección de entrega:</strong> ${direccion}</p> <!-- ✅ NUEVO CAMPO -->
 
           <div style="text-align: center; margin-top: 32px;">
             <a href="https://tu-pagina.com/mi-pedido" style="background: linear-gradient(to right, #2980b9, #6dd5fa); color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">

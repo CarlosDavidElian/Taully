@@ -17,6 +17,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _direccionController = TextEditingController();
   bool _isProcessing = false;
 
   @override
@@ -24,6 +25,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _nombreController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _direccionController.dispose();
     super.dispose();
   }
 
@@ -67,7 +69,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             _selectedPaymentMethod == null ||
                                     _nombreController.text.trim().isEmpty ||
                                     _emailController.text.trim().isEmpty ||
-                                    _phoneController.text.trim().isEmpty
+                                    _phoneController.text.trim().isEmpty ||
+                                    _direccionController.text.trim().isEmpty
                                 ? null
                                 : () => _processPayment(context, cart),
                         style: ElevatedButton.styleFrom(
@@ -194,9 +197,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
-                Icon(Icons.person, color: Colors.orange),
-                SizedBox(width: 8),
+              children: [
+                const Icon(Icons.person, color: Colors.orange),
+                const SizedBox(width: 8),
                 Text(
                   'Información de contacto',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -228,7 +231,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
 
             // Correo electrónico
@@ -252,7 +254,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 prefixIcon: const Icon(Icons.email, color: Colors.grey),
               ),
             ),
-
             const SizedBox(height: 12),
 
             // Número de teléfono
@@ -262,6 +263,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
                 labelText: 'Número de teléfono',
+                hintText: 'Ej: 987654321',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -273,6 +275,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   borderSide: const BorderSide(color: Colors.orange, width: 2),
                 ),
                 prefixIcon: const Icon(Icons.phone, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Dirección
+            TextField(
+              controller: _direccionController,
+              onChanged: (_) => setState(() {}),
+              keyboardType: TextInputType.streetAddress,
+              decoration: InputDecoration(
+                labelText: 'Dirección de entrega',
+                hintText: 'Ej: Calle Falsa 123, Lima',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.orange, width: 2),
+                ),
+                prefixIcon: const Icon(Icons.location_on, color: Colors.grey),
               ),
             ),
           ],
@@ -1031,6 +1056,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         'nombre': _nombreController.text.trim(),
         'email': _emailController.text.trim(),
         'telefono': _phoneController.text.trim(),
+        'direccion': _direccionController.text.trim(),
         'total': total,
         'estado': 'Pendiente',
         'fecha': Timestamp.now(),

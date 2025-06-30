@@ -25,6 +25,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
   final TextEditingController _precioController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _direccionController = TextEditingController();
 
   final List<String> _categorias = [
     'Abarrotes',
@@ -102,6 +103,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
       'price': precio,
       'category': _categoriaSeleccionada,
       'image': imageUrl,
+      'address': _direccionController.text.trim(),
     };
 
     if (_editId != null) {
@@ -122,6 +124,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
       _urlController.clear();
       _nombreController.clear();
       _precioController.clear();
+      _direccionController.clear();
     });
   }
 
@@ -141,11 +144,16 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                 child: pw.Text('Lista de Productos - $_categoriaSeleccionada'),
               ),
               pw.Table.fromTextArray(
-                headers: ['Nombre', 'Precio', 'Categoría'],
+                headers: ['Nombre', 'Precio', 'Categoría', 'Dirección'],
                 data:
                     productos
                         .map(
-                          (p) => [p['name'], 'S/ ${p['price']}', p['category']],
+                          (p) => [
+                            p['name'],
+                            'S/ ${p['price']}',
+                            p['category'],
+                            p['address'] ?? '',
+                          ],
                         )
                         .toList(),
               ),
@@ -175,6 +183,16 @@ class _AdminProductosPageState extends State<AdminProductosPage>
             controller: _precioController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Precio'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _direccionController,
+            decoration: const InputDecoration(
+              labelText: 'Dirección',
+              hintText: 'Ej: Av. Principal 123',
+              prefixIcon: Icon(Icons.location_on),
+            ),
+            onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -299,13 +317,20 @@ class _AdminProductosPageState extends State<AdminProductosPage>
         ),
         Expanded(
           child: StreamBuilder<List<Map<String, dynamic>>>(
-            stream: _productService.getProductsByCategory(
+           stream: _productService.getAllProducts(),
               _categoriaSeleccionada,
             ),
             builder: (context, snapshot) {
               if (!snapshot.hasData)
                 return const Center(child: CircularProgressIndicator());
-              final productos = snapshot.data!;
+              final productos =
+                  snapshot.data!
+                      .where(
+                        (p) => p['name'].toString().toLowerCase().contains(
+                          _filtroNombre,
+                        ),
+                      )
+                      .toList();
               return ListView.builder(
                 itemCount: productos.length,
                 itemBuilder: (context, index) {
@@ -319,7 +344,11 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                         fit: BoxFit.cover,
                       ),
                       title: Text(p['name']),
-                      subtitle: Text('S/ ${p['price']} - ${p['category']}'),
+
+                      subtitle: Text(
+                        'S/ ${p['price']} · ${p['category']}\n📍 ${p['address'] ?? ''}',
+                      ),
+                      isThreeLine: true,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -331,6 +360,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                                 _nombreController.text = p['name'];
                                 _precioController.text = p['price'].toString();
                                 _categoriaSeleccionada = p['category'];
+                                _direccionController.text = p['address'] ?? '';
                                 _imageUrlManual = p['image'];
                                 _urlController.text = p['image'];
                                 _imageFile = null;
@@ -388,10 +418,10 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                     IconButton(
                       icon: Icon(
                         estado == 'Pendiente'
-                            ? Icons.check_circle
-                            : Icons.cancel,
+                            ? Icons.cancel
+                            : Icons.check_circle,
                         color:
-                            estado == 'Pendiente' ? Colors.green : Colors.red,
+                            estado == 'Pendiente' ? Colors.red : Colors.green,
                       ),
                       tooltip:
                           estado == 'Pendiente'
@@ -485,36 +515,127 @@ class _AdminProductosPageState extends State<AdminProductosPage>
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Detalle del Pedido'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('📦 Cliente: ${pedido['nombre']}'),
-                  Text('📧 Correo: ${pedido['email']}'),
-                  Text('📱 Teléfono: ${pedido['telefono']}'),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '🛍️ Productos:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ...items.map((item) {
-                    final subtotal = (item['price'] * item['quantity'])
-                        .toStringAsFixed(2);
-                    return Text(
-                      '- ${item['name']} x${item['quantity']} (S/ $subtotal)',
-                    );
-                  }),
-                  const SizedBox(height: 12),
-                  Text('🧾 Total: S/ ${pedido['total']}'),
-                  Text('📌 Estado: ${pedido['estado']}'),
-                ],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              '🧾 Detalle del Pedido',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight:
+                    600, // Limita la altura para hacer scroll si es necesario
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.person, color: Colors.orange),
+                      title: Text(pedido['nombre'] ?? 'Sin nombre'),
+                      subtitle: const Text('Cliente'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.email, color: Colors.blue),
+                      title: Text(pedido['email'] ?? 'Sin correo'),
+                      subtitle: const Text('Correo electrónico'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.phone, color: Colors.green),
+                      title: Text(pedido['telefono'] ?? 'Sin teléfono'),
+                      subtitle: const Text('Teléfono'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.location_on, color: Colors.red),
+                      title: Text(pedido['direccion'] ?? 'No especificada'),
+                      subtitle: const Text('Dirección'),
+                    ),
+                    const Divider(height: 32),
+                    const Text(
+                      '🛍️ Productos:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...items.map((item) {
+                      final subtotal = (item['price'] * item['quantity'])
+                          .toStringAsFixed(2);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${item['name']} x${item['quantity']}',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                            Text('S/ $subtotal'),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    const Divider(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          'S/ ${pedido['total']}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Estado:'),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                pedido['estado'] == 'Finalizado'
+                                    ? Colors.green[100]
+                                    : Colors.orange[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            pedido['estado'] ?? 'Pendiente',
+                            style: TextStyle(
+                              color:
+                                  pedido['estado'] == 'Finalizado'
+                                      ? Colors.green[800]
+                                      : Colors.orange[800],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
-              TextButton(
-                child: const Text('Cerrar'),
+              TextButton.icon(
+                icon: const Icon(Icons.close),
+                label: const Text('Cerrar'),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
