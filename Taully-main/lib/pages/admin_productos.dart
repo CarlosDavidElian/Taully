@@ -317,7 +317,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
         ),
         Expanded(
           child: StreamBuilder<List<Map<String, dynamic>>>(
-           stream: _productService.getAllProducts(),
+            stream: _productService.getProductsByCategory(
               _categoriaSeleccionada,
             ),
             builder: (context, snapshot) {
