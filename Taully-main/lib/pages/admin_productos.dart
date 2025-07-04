@@ -185,16 +185,6 @@ class _AdminProductosPageState extends State<AdminProductosPage>
             decoration: const InputDecoration(labelText: 'Precio'),
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: _direccionController,
-            decoration: const InputDecoration(
-              labelText: 'Dirección',
-              hintText: 'Ej: Av. Principal 123',
-              prefixIcon: Icon(Icons.location_on),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _categoriaSeleccionada,
             items:
@@ -360,7 +350,6 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                                 _nombreController.text = p['name'];
                                 _precioController.text = p['price'].toString();
                                 _categoriaSeleccionada = p['category'];
-                                _direccionController.text = p['address'] ?? '';
                                 _imageUrlManual = p['image'];
                                 _urlController.text = p['image'];
                                 _imageFile = null;
