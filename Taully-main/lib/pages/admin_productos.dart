@@ -399,7 +399,9 @@ class _AdminProductosPageState extends State<AdminProductosPage>
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: ListTile(
                 title: Text('${data['nombre']} - $estado'),
-                subtitle: Text('Total: S/ ${data['total']}'),
+                subtitle: Text(
+                  'Total: S/ ${(data['total'] as double).toStringAsFixed(2)}',
+                ),
                 onTap: () => _mostrarDetallePedido(context, data),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -579,7 +581,7 @@ class _AdminProductosPageState extends State<AdminProductosPage>
                           ),
                         ),
                         Text(
-                          'S/ ${pedido['total']}',
+                          'S/ ${(pedido['total'] as double).toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

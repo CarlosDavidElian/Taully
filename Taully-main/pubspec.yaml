@@ -25,6 +25,7 @@ dependencies:
   mailer: ^6.0.1
   cloud_functions: ^5.5.2
   google_fonts: ^6.1.0
+  decimal: ^2.3.2
 
 dev_dependencies:
   flutter_test:
